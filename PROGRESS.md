@@ -1,6 +1,6 @@
 # Ownsight: progress
 
-New chat? Read this first, then how-to-update.md before editing anything (it arrives with the first build stage). The steady brief comes first; the changing status is at the bottom.
+New chat? Read this first, then how-to-update.md before editing anything. The steady brief comes first; the changing status is at the bottom.
 
 ## What it is
 
@@ -19,13 +19,13 @@ A free web app that helps each person understand their own unique psychology and
 ## Where it lives
 
 - **This repo is the latest source.** Claude's workspace is temporary, so anything worth keeping gets saved here.
-- **Web address (never changes):** https://freeforgood-apps.github.io/ownsight/ (Pages gets turned on after the first stage is pushed).
+- **Web address (never changes):** https://freeforgood-apps.github.io/ownsight/ (Pages gets turned on by the owner; see Next up).
 - **Names that never change,** or people lose their data:
   - Saved data: IndexedDB database `ownsight-v1`. Small settings: localStorage keys starting `ownsight-v1-`.
   - Offline cache names start with `ownsight-`.
   - Backup codes start with `OWNSIGHT1:`. Backup files are named `ownsight-backup-YYYY-MM-DD.json`.
 - **Shared address:** freeforgood-apps.github.io is shared with Till Payday, Study Coach and the other free apps. Every key, database and cache name keeps the `ownsight-` prefix, and nothing ever clears storage it doesn't own.
-- **Planned files** (Till Payday's layout, flat at the top of the repo): `index.html` (the whole app), `sw.js`, `manifest.webmanifest`, the icons, `selftest.html`, `rebuild.py`, `README.md` (toolkit README outline), `CHANGELOG.md`, `how-to-update.md`, `SECURITY.md` and `.gitignore` (toolkit Baseline kit), and `.github/workflows/tag-new-versions.yml` (copied from Best Guess).
+- **Files** (Till Payday's layout, flat at the top of the repo): `index.html` (the whole app), `sw.js`, `manifest.webmanifest`, the icons, `rebuild.py`, `README.md` (toolkit README outline), `CHANGELOG.md`, `how-to-update.md`, `SECURITY.md` and `.gitignore` (toolkit Baseline kit), and `.github/workflows/tag-new-versions.yml` (copied unchanged from Best Guess). Still to come: `selftest.html` (stage 3), which `rebuild.py` will build.
 
 ## The plan
 
@@ -107,17 +107,31 @@ Why some things are the way they are, so nobody "fixes" them by mistake:
 - **Saved data lives in IndexedDB, not localStorage.** Entries grow over time, and the roughly 5 MB of localStorage is shared with every app on freeforgood-apps.github.io.
 - **The app lock is optional and off by default.**
 - **The shared freeforgood-apps address was chosen over a separate org.** It's simpler, and the prefixes and privacy lock keep apps apart.
+- **Tabs sit at the bottom** (Nov 14, 2026), not at the top like Till Payday's and Best Guess's. Five tabs fit better there and stay in thumb reach, as app-new-project Part 3 asks.
+- **Warm clay color and the loop icon** (Nov 14, 2026), chosen by the owner. Clay is `#A3482B` in light mode and `#EB8F70` in dark, distinct from Till Payday's teal, Best Guess's indigo and Study Coach's navy. The icon is the thinking loop: 6 dots in a ring, the first (Notice) a little bigger.
+- **Versions stay at 0.x until the first release** (1.0, at stage 3), like Best Guess.
+- **Text size and a short About came early,** in stage 1: Part 3 wants text size from the start, and stage 1 needed the version shown. The full About (self-test link, backups) comes with stage 3.
+- **`el()` and `parseBackup()` arrive with the code that uses them** (stages 2 and 3), so there's no unused code before then.
+- **The app always opens on Catch,** with no remembered tab, since catching is the main job.
+- **Unfinished tabs say plainly what's coming** instead of being hidden, so the layout is settled early.
 - **The name Ownsight was checked on Nov 14, 2026.** Thinkprint, Groundwork, Open Mind, Mind Reader, MindLoop and Thought Compass were ruled out by existing trademarks or apps in this space. A pending "Ownersight" application covers property and building software and was judged low risk.
 
 ## Where things stand (Nov 14, 2026)
 
-- Planning is done. The repo has the README and this file only. Nothing is built, and Pages isn't turned on yet.
+- **0.1.0 (stage 1, the shell) is built and saved here.** Not shared yet, and Pages isn't turned on yet. It installs, works offline, follows light and dark, keeps clear of the notch and Home bar (safe areas), shows its version on the More tab, and has the privacy lock on. Five bottom tabs; the first four say what's coming. More has text size, Home Screen steps and About.
+- **Tested** (CHANGELOG.md has the details): 49 headless Chrome checks passed, 4 of 4 planted bugs were caught, the accessibility checker was clean on all 5 tabs at 4 sizes in light and dark, and contrast was computed for 56 color pairs (all pass).
+- **Not tested yet:** a real iPhone (safe areas, Add to Home Screen, offline), and the Android Install button (headless Chrome never offers one).
+- **Tags:** the "Tag new versions" workflow should add `v0.1.0` after this push; check its run.
+- The repo is on the monthly app security sweep's list.
 
 ## Next up
 
-- **Stages 1 and 2: the owner's quick check on an iPhone, on the live site:**
+- After this push: turn on Pages (Settings → Pages → Deploy from a branch, main, / (root) → Save, then Enforce HTTPS).
+- **Stage 1: the owner's quick check on an iPhone, on the live site:**
+  1. Add Ownsight to your Home Screen from Safari, and it opens full screen with its own icon.
+  2. Turn on Airplane Mode, open it, and it still opens, with the version shown on the More tab.
+- **Stage 2: the owner's quick check on an iPhone, on the live site:**
   1. Type a thought, tag it in 2 taps, and see it saved.
   2. After 5 thoughts, the Patterns tab says which way you lean and shows the numbers.
   3. Close the app, reopen it, and the thoughts are still there.
-- After stage 1 is pushed: turn on Pages (Settings → Pages → Deploy from a branch, main, / (root)).
-- Ask the owner whether to add this repo to the monthly app security sweep.
+- **Stage 2: thinking loop.** Bring in the toolkit's `el()` for every entry shown on screen, and the IndexedDB database `ownsight-v1` with each save read back.
