@@ -39,6 +39,7 @@ Results are tied to the version and date they were run. When the app changes, th
 
 | Version | Date | Browser and device | Result |
 |---|---|---|---|
+| 0.4.0 | Nov 14, 2026 | Safari on a real iPhone, on the live site (the owner's quick check) | ✓ Passed: saving in one tap, Make a plan, and See at a glance |
 | 0.4.0 | Nov 14, 2026 | Chrome (Blink engine) on Linux, headless: phone, small phone with extra large text in dark, and desktop sizes, in 3 time zones for Your week | ✓ Passed, 191 browser checks and 19 logic tests (in 12 time zones) |
 | 0.3.0 | Nov 14, 2026 | Chrome (Blink engine) on Linux, headless: the same sizes and themes as 0.2.0 | ✓ Passed, 124 browser checks and 20 logic tests |
 | 0.2.0 | Nov 14, 2026 | Chrome (Blink engine) on Linux, headless: phone, small phone with extra large text, iPad with large text and desktop sizes, in light and dark | ✓ Passed, 107 browser checks and 19 logic tests |

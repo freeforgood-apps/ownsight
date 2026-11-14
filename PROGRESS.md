@@ -120,14 +120,12 @@ Why some things are the way they are, so nobody "fixes" them by mistake:
 
 - **0.4.0 (the remake) is live on Pages,** not shared yet. Thoughts saved by 0.2.0 and 0.3.0 carry over.
 - **Tested in headless Chrome:** 19 logic tests in 12 time zones, 191 browser checks, 11 of 11 planted bugs caught, and the accessibility checker clean on every tab, sheet and card (CHANGELOG.md has the details). The test scripts aren't in the repo yet (see Decisions); the self-test will carry them.
-- **Not tested yet:** the owner's iPhone check of 0.4.0 (below), VoiceOver on a real iPhone (at the first release), and the Android Install button (headless Chrome never offers one).
+- **The owner's iPhone check of 0.4.0 passed** (Nov 14, 2026, on the live site): both Done when lines. They're also browser checks, and the self-test will carry them.
+- **Not tested yet:** VoiceOver on a real iPhone (at the first release), and the Android Install button (headless Chrome never offers one).
 - **The iPhone checks for 0.2.0 and 0.3.0 were dropped,** since the remake replaced those screens. Stage 1's iPhone check passed (Nov 14, 2026).
 - **Tags:** `v0.1.0`, `v0.2.0`, `v0.3.0` and `v0.4.0`, all added by the "Tag new versions" workflow (its runs passed).
 - The repo is on the monthly app security sweep's list.
 
 ## Next up
 
-- **The owner's iPhone check of 0.4.0,** on the live site:
-  1. Save a thought in one tap, open it, tap Make a plan, and it moves to Planning it.
-  2. On See, you can tell at a glance where your thoughts sit and what lifts you or weighs on you.
 - **Safety net** (then 1.0). The self-test checks that the app opens offline with its version shown, carries the logic checks and the Done when lines code can test, and uses its own database name, never `ownsight-v1`. Once the self-test can open the sheets with made-up thoughts, the seed and draft steps in how-to-update.md retire. Before building, draft its Done when lines.
