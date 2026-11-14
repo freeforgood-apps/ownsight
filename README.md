@@ -4,26 +4,26 @@ A free, private app to understand how you think and what it means for your life.
 
 **Open the app:** https://freeforgood-apps.github.io/ownsight/
 
-**Early test version (0.3.0).** You can catch thoughts and see your own patterns. Backups, decisions, moments and your groundwork come in later updates, so for now it's best for trying out rather than for anything you'd hate to lose. A self-test page you can run yourself comes with the first full release (1.0).
+**Early test version (0.4.0).** You can write your thoughts, move them along and see your own counts. Backups come in a later update, so for now it's best for trying out rather than for anything you'd hate to lose. A self-test page you can run yourself comes with the first full release (1.0).
 
 ## Who it's for
 
-Anyone who wants to understand their own way of thinking: where it leans, where it gets stuck, how they decide, and what fuels and drains them. It's for the moments when a thought, a choice or a day needs sorting out, and for anyone who'd like a clearer picture of themselves over time. It's a mirror, not a diagnosis.
+Anyone who wants to understand themselves a little better, in the most straightforward way: what's on their mind, what they act on, and what lifts them or weighs on them. It's for the moments when a thought or a day needs sorting out, and for anyone who'd like a clearer picture of themselves over time. It's a mirror, not a diagnosis.
 
 ## What's inside
 
-- **Catch a thought in two taps:** write what's on your mind, tap where it sits in one thinking loop (Notice → Question → Idea → Plan → Do → Check), then tap a topic. That second tap saves it. **Undo** is right there if a tap went wrong.
-- **Move it forward:** open any thought and take it to its next stage. Thoughts you move forward make a trail you can follow from start to finish. You can also edit or delete a thought, with Undo.
-- **Patterns, in plain counts:** after 5 thoughts, where your thinking leans, where it tends to get stuck (like "4 at Idea for every 1 at Plan"), which way you're heading (after 10), a map of the loop with your trails, and which topics are on your mind. Before that, a clearly marked example shows what it will look like.
-- **Show me one:** when something looks stuck, one tap opens the oldest thought still waiting there, ready to move forward.
-- **Your own topics:** Work, Home, People, Money and Me to start. Rename any of them on the More tab, and pick one above Recent to see only its thoughts.
-- **Saves on your device:** every save is checked by reading it back. If saving stops working, Ownsight says so. A second open window can't save over newer thoughts.
-- **Five tabs in thumb reach:** Catch, Patterns, Decide, Me and More.
+- **Save a thought in one tap:** write what's on your mind, then tap where it's at: **Thinking about it**, **Planning it** or **Did it**. That tap saves it. **Undo** is right there if a tap went wrong.
+- **Lifts me or weighs on me:** right after saving, you can tap whether it lifts you or weighs on you. It's optional, and you can set or change it later.
+- **Move it along:** open a thought and tap its next step: **Make a plan** ("What will you do about it?"), then **I did it** ("How did it go?"). Each asks for an optional line. You can also edit the words or delete a thought, with Undo.
+- **See, in plain counts:** after 5 thoughts, where your thoughts sit, what lifts you and what weighs on you, and how many are waiting for a plan. **Show me one** opens the oldest one waiting.
+- **Your week:** from Friday to Sunday, See starts with a look back at your last 7 days: what you wrote and did, and what lifted you or weighed on you.
+- **Saves on your device:** every save is checked by reading it back. If saving stops working, Ownsight says so. A second open window can't save over newer thoughts. Thoughts saved by 0.2.0 or 0.3.0 carry over.
+- **Three tabs in thumb reach:** Write, See and More.
 - **Works offline:** after the first visit, it opens without internet.
 - **Light and dark:** follows your device's setting.
 - **Text size:** normal, large or extra large, on the More tab.
 - **Privacy lock:** built into the page, so it can't send anything over the internet.
-- **Coming next:** backups and restore, decisions you check back on, making sense of a moment, and your groundwork (how you decide, what fuels and drains you, and the Big Five).
+- **Coming next:** backups and restore, an optional app lock, and a self-test you can run yourself.
 
 ## Add it to your home screen
 
@@ -39,11 +39,12 @@ Results are tied to the version and date they were run. When the app changes, th
 
 | Version | Date | Browser and device | Result |
 |---|---|---|---|
+| 0.4.0 | Nov 14, 2026 | Chrome (Blink engine) on Linux, headless: phone, small phone with extra large text in dark, and desktop sizes, in 3 time zones for Your week | ✓ Passed, 191 browser checks and 19 logic tests (in 12 time zones) |
 | 0.3.0 | Nov 14, 2026 | Chrome (Blink engine) on Linux, headless: the same sizes and themes as 0.2.0 | ✓ Passed, 124 browser checks and 20 logic tests |
 | 0.2.0 | Nov 14, 2026 | Chrome (Blink engine) on Linux, headless: phone, small phone with extra large text, iPad with large text and desktop sizes, in light and dark | ✓ Passed, 107 browser checks and 19 logic tests |
 | 0.1.0 | Nov 14, 2026 | Chrome (Blink engine) on Linux, headless: phone size and small phone size with extra large text, in light and dark, and desktop size | ✓ Passed, 49 automated checks |
 
-**What the automated checks cover (0.3.0):** Show me one opening the oldest thought still waiting, and focus coming back to it; the topic filter on Recent; and everything from 0.2.0: catching a thought in two taps and reading the save back; Undo; Patterns at 0, 4, 5 and 23 thoughts, with the math checked a second way; showing 20 at a time in Recent; moving a thought forward, trails, editing and deleting, each with Undo; renaming topics; typed HTML and scripts showing as plain text; closing and reopening with the thoughts still there; a second window picking up new thoughts, and an out-of-date window never saving over newer ones; damaged saved data set aside and never saved over; data from a newer version left alone; a device that can't save saying so; settings from 0.1.0 still working; keyboard only; offline; every saved name starting with the app's own prefix; and nothing scrolling sideways or hiding behind the bars. The accessibility checker (WCAG 2.2 AA) found nothing on all 5 tabs, the full Patterns tab, every sheet, the Undo bar, the warning card and the topic filter, at 4 sizes in light and dark.
+**What the automated checks cover (0.4.0):** saving a thought in one tap and reading the save back; lifts me or weighs on me, from the card after saving and from the thought; Undo; opening a thought, making a plan and moving it to Did it, each with its optional line and Undo; editing and deleting with Undo; See before and after 5 thoughts, with the counts checked a second way; lifts and weighs; Show me one and focus coming back to it; Your week shown only from Friday to Sunday, over the last 7 days, at the midnight edges, across month ends, a leap day, the year end and daylight saving changes, in 12 time zones; thoughts saved by 0.2.0 and 0.3.0 carrying over, with an open 0.3.0 window never saving over the new data; showing 20 at a time in Recent, and the 10,000 limit; typed HTML and scripts showing as plain text; a second window picking up new thoughts, and an out-of-date window never saving over newer ones; damaged saved data set aside and never saved over; data from a newer version left alone; keyboard only; offline; every saved name starting with the app's own prefix; and nothing scrolling sideways or hiding behind the bars. The accessibility checker (WCAG 2.2 AA) found nothing on all 3 tabs, See with Your week, every sheet, the card after saving, the Undo bar and the warning card, at 4 sizes in light and dark.
 
 Chrome's engine also powers Microsoft Edge, Chromebooks, Android phones, Samsung Internet, Brave and Opera. Safari's engine powers Safari and nearly every other browser on iPhone and iPad.
 
@@ -58,7 +59,7 @@ Chrome's engine also powers Microsoft Edge, Chromebooks, Android phones, Samsung
 
 ## Accessibility
 
-Buttons are at least 44 pixels tall, every button and tab has a spoken name, and the text size choice goes up to extra large. It follows light and dark mode and your device's Reduce Motion and higher contrast settings. Text contrast meets WCAG 2.2 AA in both themes, and text boxes and buttons have edges that stand out (computed for every color pair). The tabs work with the arrow keys, everything works with a keyboard, sheets close with Esc and put you back where you were, and saves, Undo and problems are read out. The Map is described in words, and the stuck point is named, not just colored. It hasn't been checked with VoiceOver on a real iPhone yet. If anything is hard to use, please let us know (see Feedback below).
+Buttons are at least 44 pixels tall, every button and tab has a spoken name, and the text size choice goes up to extra large. It follows light and dark mode and your device's Reduce Motion and higher contrast settings. Text contrast meets WCAG 2.2 AA in both themes, and text boxes and buttons have edges that stand out (computed for every color pair). The tabs work with the arrow keys, everything works with a keyboard, sheets close with Esc and put you back where you were, and saves, Undo and problems are read out. The bar on See has the same counts in words next to it, and a pressed choice shows a ring and a check mark, not just a color. It hasn't been checked with VoiceOver on a real iPhone yet. If anything is hard to use, please let us know (see Feedback below).
 
 ## Not therapy or professional advice
 
@@ -82,7 +83,7 @@ Ownsight is a one-person volunteer project, so replies can take a while. Every m
 
 | File | What it does |
 |---|---|
-| `index.html` | The whole app in one file (about 290 KB, fonts included) |
+| `index.html` | The whole app in one file (about 280 KB, fonts included) |
 | `sw.js` | Lets the app work offline after the first visit. Keep it next to `index.html` |
 | `manifest.webmanifest` | The app's install details: name, icons and how it opens |
 | `icon-192.png`, `icon-512.png`, `icon-maskable-512.png`, `apple-touch-icon.png`, `favicon-32.png` | The app icons |

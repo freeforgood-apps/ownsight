@@ -27,17 +27,17 @@ A free web app that helps each person understand themselves and what it means fo
 - **Shared address:** freeforgood-apps.github.io is shared with Till Payday, Study Coach and the other free apps. Every key, database and cache name keeps the `ownsight-` prefix, and nothing ever clears storage it doesn't own.
 - **Files** (Till Payday's layout, flat at the top of the repo): `index.html` (the whole app), `sw.js`, `manifest.webmanifest`, the icons, `rebuild.py`, `README.md` (toolkit README outline), `CHANGELOG.md`, `how-to-update.md`, `SECURITY.md` and `.gitignore` (toolkit Baseline kit), and `.github/workflows/tag-new-versions.yml` (copied unchanged from Best Guess). Still to come: `selftest.html` (the safety-net stage), which `rebuild.py` will build.
 
-## The plan: the remake (Nov 14, 2026)
+## How it works: the remake (0.4.0, Nov 14, 2026)
 
-The owner asked for a remake, rethought from the goal: simpler to understand and use, and straightforward. The hardest parts were picking 1 of 6 stages and too much on Patterns. The owner approved a mockup of the screens below (a private design canvas, not linked here).
+The owner asked for a remake, rethought from the goal: simpler to understand and use, and straightforward. The hardest parts were picking 1 of 6 stages and too much on Patterns. The owner approved a mockup of the screens below (a private design canvas, not linked here), and 0.4.0 builds them.
 
 ### Three tabs, at the bottom: Write, See, More
 
 1. **Write** (the app opens here)
    - One box, "What's on your mind?", then "Where is it at? Tap one to save it." and three big buttons with short hints: **Thinking about it** (On my mind, no plan yet), **Planning it** (I know what I'll do), **Did it** (Done, or doing it now). The tap saves.
-   - Right after saving, a card above the tabs: "Saved as Thinking about it." with **Undo**, and "Does it lift you or weigh on you?" with **Lifts me** and **Weighs on me**, then "Optional. Skip it if you're not sure."
+   - Right after saving, a card above the tabs: "Saved as Thinking about it." with **Undo**, and "Does it lift you or weigh on you?" with **Lifts me** and **Weighs on me**, then "Optional. Skip it if you're not sure." It's the Undo bar with the question added, and it stays about 20 seconds.
    - **Recent** under the box, newest first. Tapping a thought opens it.
-2. **A thought, opened** (a sheet): its words, its stage and since when, then **Next step**, one big button. At Thinking: **Make a plan** ("What will you do about it?"), plus **I already did it**. At Planning: **I did it** ("How did it go?"). Each asks for an optional line, then moves the thought along. At Did it, there's no next step. Also **Edit** and **Delete** (with Undo), and lifts or weighs can be set or changed here.
+2. **A thought, opened** (a sheet): its words, its stage and since when (plus when it was written, once it has moved), the lines written when it moved along ("Your plan", "How it went"), then **Next step**, one big button. At Thinking: **Make a plan** ("What will you do about it?"), plus **I already did it**. At Planning: **I did it** ("How did it go?"). Each asks for an optional line, then moves the thought along. At Did it, there's no next step. Lifts or weighs can be set, changed or cleared here. Then **Edit** (the words) and **Delete**, each with Undo.
 3. **See** (plain counts, from 5 thoughts; before that, one line: "3 of 5 so far")
    - "From your 12 thoughts", a headline from the biggest stage ("You do a lot of thinking.", "You make a lot of plans." or "You get a lot done."; a tie: "Your thoughts are spread out."), the count ("8 of your 12 thoughts are still at Thinking about it."), one bar in three parts, and a key with the counts.
    - **What lifts you, and what weighs on you:** how many of each and the newest 3, then "What do the ones that lift you have in common?" Shows once at least one thought has been tapped.
@@ -68,7 +68,7 @@ The database, the record layout, the save count, the read-back and the damaged a
 
 1. **Shell:** done (0.1.0).
 2. **The first thinking loop:** done (0.2.0 and 0.3.0), now replaced by the remake.
-3. **The remake (0.4.0):** the screens above, version 2 data and the move up from version 1.
+3. **The remake:** done (0.4.0): the screens above, version 2 data and the move up from version 1.
 4. **Safety net:** automatic copies, backup file and code (optional password), two-tap restore (including a `damaged-<rev>` copy), backup reminders, optional app lock, the full About, the self-test and the first release (1.0).
 
 **Ideas for later** (offered to the owner, not chosen): a 3-minute personality check (20 public-domain IPIP statements, shown as five plain sentences, never a type), and one question a day.
@@ -87,6 +87,13 @@ Why some things are the way they are, so nobody "fixes" them by mistake:
 - **Lifts me or weighs on me** (Nov 14, 2026, the owner's choice of the simplest way to learn more about yourself). It's optional and comes right after saving, so saving stays one tap.
 - **Your week shows from Friday to Sunday** (Nov 14, 2026, the owner's choice), so it feels like a small end-of-week ritual.
 - **Show me one opens the oldest thought at Thinking** (kept from 0.3.0, now "waiting for a plan"). It opens the thought itself, so it can be read first.
+- **Edit fixes the words only** (0.4.0). Where a thought is at changes only by moving it along, and only forward, so its steps always match its stage. A wrong tap when saving is caught by the Undo right after.
+- **The card after saving is the Undo bar with the question** (0.4.0). It stays 20 seconds (other Undo bars 10), longer while it has focus, so there's time to read and answer. Focus moves into it, so keyboard and VoiceOver users reach Undo and the question right away. Answering keeps it showing, so Undo is still there.
+- **Your week counts what was written in the last 7 days, today included,** in the person's own time, and "did" means how many of those are at Did it now. A week with none done just says how many were written, never "did 0", for people having a hard week.
+- **Version 1 data moves up when it's read** and is saved as version 2 only with the next change, so opening 0.4.0 changes nothing by itself, and an old window left open still works until then (after that it sees newer data and stops saving).
+- **The bar on See is extra, not the only way to read it:** the counts are in words beside it, and it's hidden from screen readers. Further along is a deeper color in light mode and a brighter one in dark.
+- **A pressed Lifts me or Weighs on me shows a ring and a check mark,** not only a color.
+- **What has focus scrolls clear of the Undo bar** (`keepClear()`, 0.4.0). Testing showed a thought moved along could sit under the bar.
 - **See shows from 5 thoughts.** Fewer than that means too little. Before that it's one plain line, with no example, to keep it straightforward.
 - **Replaced by the remake,** so nobody brings them back by mistake: the six-stage loop, topics (with renaming and the filter), Move forward into new linked thoughts and trails, the Map, the heading and the stuck point, the marked example, and the Decide and Me tabs (decisions, Moments, How I decide, Fuels & drains, the Big Five). They went to keep it straightforward. Topics or a personality check can come back if the owner asks.
 - **Straight to a web app, no Claude artifact first** (Nov 14, 2026). It's free for anyone, nothing gets built twice, and Home Screen apps keep their data better than artifact storage. It matches the retired Claude copies rule across freeforgood-apps.
@@ -111,18 +118,16 @@ Why some things are the way they are, so nobody "fixes" them by mistake:
 
 ## Where things stand (Nov 14, 2026)
 
-- **0.3.0 (the first design) is live on Pages,** not shared yet. README.md and CHANGELOG.md describe it until the remake ships.
-- **The remake is planned and mocked up.** The owner approved the mockup (5 screens: Write, just saved, a thought opened, See, and See with Your week) on Nov 14, 2026.
-- **The iPhone checks for 0.2.0 and 0.3.0 were dropped,** since the remake replaces those screens. Stage 1's iPhone check passed (Nov 14, 2026).
-- **Not tested yet:** the Android Install button (headless Chrome never offers one), and VoiceOver on a real iPhone (at the first release).
-- **Tags:** `v0.1.0`, `v0.2.0` and `v0.3.0`, all added by the "Tag new versions" workflow (its runs passed).
+- **0.4.0 (the remake) is live on Pages,** not shared yet. Thoughts saved by 0.2.0 and 0.3.0 carry over.
+- **Tested in headless Chrome:** 19 logic tests in 12 time zones, 191 browser checks, 11 of 11 planted bugs caught, and the accessibility checker clean on every tab, sheet and card (CHANGELOG.md has the details). The test scripts aren't in the repo yet (see Decisions); the self-test will carry them.
+- **Not tested yet:** the owner's iPhone check of 0.4.0 (below), VoiceOver on a real iPhone (at the first release), and the Android Install button (headless Chrome never offers one).
+- **The iPhone checks for 0.2.0 and 0.3.0 were dropped,** since the remake replaced those screens. Stage 1's iPhone check passed (Nov 14, 2026).
+- **Tags:** `v0.1.0`, `v0.2.0` and `v0.3.0`, all added by the "Tag new versions" workflow (its runs passed). `v0.4.0` comes from the same workflow when 0.4.0 reaches main.
 - The repo is on the monthly app security sweep's list.
 
 ## Next up
 
-- **The remake (0.4.0).** The owner's quick check on an iPhone, on the live site:
+- **The owner's iPhone check of 0.4.0,** on the live site:
   1. Save a thought in one tap, open it, tap Make a plan, and it moves to Planning it.
   2. On See, you can tell at a glance where your thoughts sit and what lifts you or weighs on you.
-
-  Keep what already works: the saving engine (save count, read-back, damaged and newer data, two windows), `el()`, the Undo bar, the sheet and its focus handling, text size, the install card and the logic markers. Replace the screens and the logic functions. Write the move up from version 1, tested against saved 0.2.0 and 0.3.0 samples. Test Your week across the Friday and Sunday edges, month ends and time zones. Then update how-to-update.md (the checker lines for the new tabs and sheets, and the seed page's data shape), README.md and CHANGELOG.md.
-- **Safety net** (then 1.0). The self-test checks that the app opens offline with its version shown, carries the logic checks and the Done when lines code can test, and uses its own database name, never `ownsight-v1`. Once the self-test can open the sheets with made-up thoughts, the seed-page step in how-to-update.md retires. Before building, draft its Done when lines.
+- **Safety net** (then 1.0). The self-test checks that the app opens offline with its version shown, carries the logic checks and the Done when lines code can test, and uses its own database name, never `ownsight-v1`. Once the self-test can open the sheets with made-up thoughts, the seed and draft steps in how-to-update.md retire. Before building, draft its Done when lines.
