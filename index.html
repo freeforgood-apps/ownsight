@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-H2o0YQfalh1SenUXer49Z+9HdhG3Sv7qLY2Eya+YsFg='; style-src 'unsafe-inline'; img-src 'self' data: blob:; font-src data:; connect-src 'none'; manifest-src 'self'; worker-src 'self'; form-action 'none'; base-uri 'none'; object-src 'none'; frame-src 'none'; media-src 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-9DdLb6k/0zDa1jiBLnS3NTmCGA9PASOKAQ/aADZLl38='; style-src 'unsafe-inline'; img-src 'self' data: blob:; font-src data:; connect-src 'none'; manifest-src 'self'; worker-src 'self'; form-action 'none'; base-uri 'none'; object-src 'none'; frame-src 'none'; media-src 'none'">
 <meta name="referrer" content="no-referrer">
 <meta name="description" content="A free, private app to understand how you think and what it means for your life. Everything stays on your device.">
 <meta name="theme-color" content="#F7F2EF" media="(prefers-color-scheme: light)">
@@ -44,6 +44,7 @@
   --accent: #A3482B;
   --on-accent: #FFF7F3;
   --accent-soft: #F6E3DA;
+  --edge: #8E776D;   /* edges of text boxes and choice buttons: 3:1 or more against surface, field and bg */
   --scrim: rgb(43 29 23 / 0.45);
   --bar-h: 4.75rem;
   --f-display: "Bricolage Grotesque", "Avenir Next", system-ui, sans-serif;
@@ -54,7 +55,7 @@
 @media (prefers-color-scheme: dark) {
   :root {
     --bg: #17110F; --surface: #221916; --field: #2E231F; --ink: #F2E8E3; --muted: #BBA79E; --line: #3B2E29;
-    --accent: #EB8F70; --on-accent: #2A0E05; --accent-soft: #3A231B; --scrim: rgb(0 0 0 / 0.6);
+    --accent: #EB8F70; --on-accent: #2A0E05; --accent-soft: #3A231B; --edge: #857066; --scrim: rgb(0 0 0 / 0.6);
     color-scheme: dark;
   }
 }
@@ -86,7 +87,7 @@ a { color: var(--accent); text-underline-offset: 3px; }
   padding-left: max(16px, env(safe-area-inset-left, 0px));
   padding-right: max(16px, env(safe-area-inset-right, 0px));
 }
-.topin { padding-top: 16px; }
+.topin { padding-top: 16px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 4px 12px; }
 .brand { display: flex; align-items: center; gap: 10px; margin: 0; font-family: var(--f-display); font-weight: 800; font-size: 1.375rem; letter-spacing: -0.01em; }
 .brand svg { flex: none; width: 1.75rem; height: 1.75rem; color: var(--accent); }
 .wrap {
@@ -106,11 +107,114 @@ h3:focus { outline: none; }
 .foot { font-size: 0.875rem; color: var(--muted); }
 .alert { padding: 10px 12px; border-radius: 10px; background: var(--accent-soft); color: var(--ink); }
 
-/* The thinking loop, as a row of chips */
-.loop { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; align-items: center; gap: 8px 4px; }
-.loop li { display: inline-flex; align-items: center; gap: 4px; }
-.loop .chip { background: var(--accent-soft); color: var(--accent); font-weight: 700; font-size: 0.875rem; padding: 4px 10px; border-radius: 999px; }
-.loop .arr { color: var(--muted); font-size: 0.875rem; }
+h4 { font-family: var(--f-display); font-weight: 600; font-size: 1rem; margin: 4px 0 0; }
+[tabindex="-1"]:focus { outline: none; }
+.sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
+
+/* Saving status, beside the name */
+.status { font-size: 0.8125rem; font-weight: 700; color: var(--muted); }
+.status:empty { display: none; }
+.status.warn { color: var(--ink); background: var(--accent-soft); padding: 2px 10px; border-radius: 999px; }
+
+/* Text boxes */
+.field-label { font-weight: 700; }
+textarea, input[type="text"] {
+  width: 100%; font: 1rem/1.4 var(--f-body); font-size: max(16px, 1rem); color: var(--ink);
+  background: var(--field); border: 1px solid var(--edge); border-radius: 12px; padding: 10px 12px; min-height: 44px;
+}
+textarea { min-height: 5.5rem; resize: vertical; }
+textarea:focus-visible, input[type="text"]:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+
+/* Picking a stage (step 1) and a topic (step 2) */
+.pick { border: 0; margin: 0; padding: 0; min-width: 0; }
+.pick legend { padding: 0; margin-bottom: 8px; font-weight: 700; }
+.stages { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+@media (min-width: 30rem) { .stages { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+.stage, .topic {
+  appearance: none; cursor: pointer; min-height: 44px; color: var(--ink); background: var(--surface);
+  border: 1px solid var(--edge); font: inherit;
+}
+.stage { text-align: left; padding: 8px 12px; border-radius: 12px; display: flex; flex-direction: column; gap: 2px; }
+.stage .sname { font-weight: 700; }
+.stage .shint { font-size: 0.8125rem; line-height: 1.3; color: var(--muted); }
+.topics { display: flex; flex-wrap: wrap; gap: 8px; }
+.topic { padding: 10px 16px; border-radius: 999px; font-weight: 700; max-width: 100%; overflow-wrap: anywhere; }
+@media (hover: hover) { .stage:hover, .topic:hover { background: var(--field); } }
+.stage[aria-pressed="true"], .topic[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
+.stage[aria-pressed="true"] .shint { color: var(--on-accent); }
+
+/* Lists of thoughts and trails: each one is a button that opens it */
+.entries { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+.entry {
+  appearance: none; width: 100%; min-height: 44px; text-align: left; cursor: pointer; font: inherit; color: var(--ink);
+  background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 12px 14px;
+  display: flex; flex-direction: column; gap: 6px;
+}
+@media (hover: hover) { button.entry:hover { border-color: var(--edge); } }
+.entry.current { cursor: default; border: 2px solid var(--accent); }
+.etext { white-space: pre-wrap; overflow-wrap: anywhere; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 4; line-clamp: 4; overflow: hidden; }
+.etext.short { -webkit-line-clamp: 2; line-clamp: 2; }
+.emeta { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 8px; font-size: 0.875rem; color: var(--muted); }
+.chip { background: var(--accent-soft); color: var(--accent); font-weight: 700; font-size: 0.8125rem; padding: 2px 10px; border-radius: 999px; }
+.path { display: flex; flex-wrap: wrap; align-items: center; gap: 4px; }
+.path .arr { color: var(--muted); font-size: 0.875rem; }
+.sheet-text { white-space: pre-wrap; overflow-wrap: anywhere; font-size: 1.0625rem; }
+
+/* Patterns: bars, the example, the Map and topics */
+.bars { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+.bars li { display: grid; grid-template-columns: 5.5rem minmax(0, 1fr) auto; align-items: center; gap: 8px; font-size: 0.9375rem; }
+.bars li.top .bname { font-weight: 700; }
+.btrack { height: 12px; border-radius: 999px; background: var(--field); overflow: hidden; }
+.bfill { display: block; height: 100%; background: var(--accent); border-radius: 999px; }
+.bnum { font-family: var(--f-num); font-size: 0.875rem; color: var(--muted); white-space: nowrap; }
+.card.example { background: transparent; border-style: dashed; border-color: var(--edge); }
+.map { display: block; width: 100%; max-width: 20rem; height: auto; margin: 0 auto; }
+.map .ring { fill: none; stroke: var(--line); stroke-width: 2; }
+.map .arrow { fill: var(--muted); }
+.map .node { fill: var(--surface); stroke: var(--accent); stroke-width: 2; }
+.map .node.stuck { fill: var(--accent); }
+.map .count { fill: var(--ink); font: 700 16px var(--f-num); }
+.map .count.small { font-size: 12px; }
+.map .count.stuck { fill: var(--on-accent); }
+.map .label { fill: var(--ink); font: 700 13px var(--f-body); }
+.map .flag { fill: var(--accent); font: 700 14px var(--f-body); }
+.tlist { margin: 0; padding-left: 1.25em; display: flex; flex-direction: column; gap: 4px; }
+#topicNames { display: flex; flex-direction: column; gap: 10px; }
+.trow { display: flex; flex-direction: column; gap: 4px; }
+
+/* The sheet that opens a thought: slides up from the bottom on phones, centered on bigger screens */
+dialog.sheet {
+  border: 0; padding: 0; margin: auto auto 0; width: 100%; max-width: 34rem; max-height: 92dvh; overflow: auto;
+  border-radius: 20px 20px 0 0; background: var(--surface); color: var(--ink); box-shadow: 0 -8px 32px rgb(0 0 0 / 0.25);
+}
+dialog.sheet::backdrop { background: rgb(0 0 0 / 0.5); }
+@media (min-width: 40rem) { dialog.sheet { margin: auto; border-radius: 20px; } }
+.sheetin {
+  display: flex; flex-direction: column; gap: 12px;
+  padding: 16px max(16px, env(safe-area-inset-right, 0px)) calc(20px + env(safe-area-inset-bottom, 0px)) max(16px, env(safe-area-inset-left, 0px));
+}
+.sheettop { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.sheettop h2 { margin: 0; }
+
+/* Undo, just above the tab bar */
+.undo {
+  position: fixed; z-index: 25;
+  left: max(16px, env(safe-area-inset-left, 0px));
+  right: max(16px, env(safe-area-inset-right, 0px));
+  bottom: calc(var(--bar-h) + 12px + env(safe-area-inset-bottom, 0px));
+  max-width: 30rem; margin: 0 auto;
+  display: flex; align-items: center; justify-content: space-between; gap: 8px;
+  background: var(--ink); color: var(--bg); border-radius: 14px; padding: 6px 6px 6px 14px;
+  box-shadow: 0 8px 24px rgb(0 0 0 / 0.25); font-size: 0.9375rem;
+}
+.undo button {
+  appearance: none; flex: none; cursor: pointer; min-height: 44px; padding: 8px 16px; border-radius: 10px;
+  background: transparent; color: var(--bg); border: 1px solid var(--bg); font: 700 1rem/1.2 var(--f-body);
+}
+.undo button:focus-visible { outline-color: var(--bg); }
+html.has-undo { scroll-padding-bottom: calc(var(--bar-h) + 96px + env(safe-area-inset-bottom, 0px)); }
+html.has-undo .wrap { padding-bottom: calc(var(--bar-h) + 96px + env(safe-area-inset-bottom, 0px)); }
+html.has-undo .toast { bottom: calc(var(--bar-h) + 88px + env(safe-area-inset-bottom, 0px)); }
 
 .actions { display: flex; flex-wrap: wrap; gap: 8px; }
 .primary, .ghost {
@@ -178,6 +282,7 @@ button:focus-visible, a:focus-visible { outline: 2px solid var(--accent); outlin
       <svg viewBox="0 0 32 32" aria-hidden="true" focusable="false"><circle cx="16" cy="16" r="11" fill="none" stroke="currentColor" stroke-width="1.5" opacity="0.35"/><circle cx="16" cy="5" r="3.2" fill="currentColor"/><circle cx="25.5" cy="10.5" r="2.4" fill="currentColor"/><circle cx="25.5" cy="21.5" r="2.4" fill="currentColor"/><circle cx="16" cy="27" r="2.4" fill="currentColor"/><circle cx="6.5" cy="21.5" r="2.4" fill="currentColor"/><circle cx="6.5" cy="10.5" r="2.4" fill="currentColor"/></svg>
       Ownsight
     </h1>
+    <p class="status" id="status"></p>
   </div>
 </header>
 
@@ -187,18 +292,26 @@ button:focus-visible, a:focus-visible { outline: 2px solid var(--accent); outlin
 
   <section class="panel" id="view-catch" role="tabpanel" aria-labelledby="tab-catch">
     <h2>Catch</h2>
+    <div class="card" id="warnCard" role="alert" hidden>
+      <h3 id="warnHead"></h3>
+      <p id="warnText"></p>
+      <div class="actions"><button class="primary" type="button" id="warnBtn" hidden></button></div>
+    </div>
     <div class="card">
-      <p class="kicker">Coming in the next update</p>
-      <h3 class="headline">Catch a thought in two taps</h3>
-      <p>Write what's on your mind. Tap where it sits in the thinking loop, then tap a topic. Over time, your own patterns show up.</p>
-      <ol class="loop" aria-label="The thinking loop, in order">
-        <li><span class="chip">Notice</span><span class="arr" aria-hidden="true">→</span></li>
-        <li><span class="chip">Question</span><span class="arr" aria-hidden="true">→</span></li>
-        <li><span class="chip">Idea</span><span class="arr" aria-hidden="true">→</span></li>
-        <li><span class="chip">Plan</span><span class="arr" aria-hidden="true">→</span></li>
-        <li><span class="chip">Do</span><span class="arr" aria-hidden="true">→</span></li>
-        <li><span class="chip">Check</span><span class="arr" aria-hidden="true">↺</span></li>
-      </ol>
+      <h3 id="catchHead" tabindex="-1">Catch a thought</h3>
+      <p class="foot" id="catchIntro" hidden>Write what's on your mind. Tap where it sits in the thinking loop, then tap a topic. Your own patterns build from there.</p>
+      <label class="field-label" for="catchText">What's on your mind?</label>
+      <textarea id="catchText" rows="3" autocomplete="off" aria-describedby="catchCount"></textarea>
+      <p class="foot" id="catchCount" hidden></p>
+      <p class="alert" id="catchErr" role="alert" hidden></p>
+      <fieldset class="pick">
+        <legend>Step 1 of 2: where does it sit in the loop?</legend>
+        <div id="catchStages"></div>
+      </fieldset>
+      <fieldset class="pick" id="catchTopicStep" hidden>
+        <legend>Step 2 of 2: which topic? Tapping one saves it.</legend>
+        <div class="topics" id="catchTopics"></div>
+      </fieldset>
     </div>
     <div class="card" id="installCard" hidden>
       <h3>Add Ownsight to your Home Screen</h3>
@@ -208,16 +321,62 @@ button:focus-visible, a:focus-visible { outline: 2px solid var(--accent); outlin
         <button class="ghost" type="button" id="installDone">Got it</button>
       </div>
     </div>
-    <p class="foot">Everything you add will stay on this device. Nothing is sent anywhere.</p>
+    <h3 id="recentHead" tabindex="-1">Recent</h3>
+    <p class="foot" id="recentEmpty">Opening your thoughts…</p>
+    <ul class="entries" id="recentList"></ul>
+    <div class="actions"><button class="ghost" type="button" id="recentMore" hidden>Show more</button></div>
+    <p class="foot">Your thoughts save on this device automatically. Nothing is sent anywhere.</p>
   </section>
 
   <section class="panel" id="view-patterns" role="tabpanel" aria-labelledby="tab-patterns" hidden>
     <h2>Patterns</h2>
-    <div class="card">
-      <p class="kicker">Coming in the next update</p>
-      <h3 class="headline">See where your thinking leans</h3>
-      <p>After a few thoughts, this shows which part of the loop gets most of yours, where things tend to get stuck, and which way you're heading.</p>
-      <p class="foot">Plain counts in your own words, never a label.</p>
+    <div class="panel" id="patternsEarly">
+      <div class="card">
+        <p class="kicker">Your first look</p>
+        <h3 class="headline" id="earlyCount">0 of 5 thoughts so far</h3>
+        <p>After 5 thoughts, this shows where your thinking leans, where it tends to get stuck, and the trails your thoughts take.</p>
+        <div class="actions"><button class="ghost" type="button" id="earlyGo">Catch a thought</button></div>
+      </div>
+      <div class="card example">
+        <p class="kicker">Example</p>
+        <h3>What it will look like</h3>
+        <p class="foot">Made-up thoughts, not yours.</p>
+        <p id="exLean"></p>
+        <ul class="bars" id="exBars"></ul>
+        <p id="exStuck"></p>
+      </div>
+    </div>
+    <div class="panel" id="patternsMain" hidden>
+      <div class="card">
+        <h3>Where your thinking leans</h3>
+        <p id="leanText"></p>
+        <ul class="bars" id="leanBars"></ul>
+        <p class="foot" id="leanNote" hidden>A first look. It gets clearer as you add more.</p>
+      </div>
+      <div class="card">
+        <h3>Stuck point</h3>
+        <p id="stuckText"></p>
+        <p class="foot" id="stuckTip"></p>
+      </div>
+      <div class="card">
+        <h3>Which way you're heading</h3>
+        <p id="headText"></p>
+        <p class="foot" id="headNote"></p>
+      </div>
+      <div class="card">
+        <h3 id="mapHead" tabindex="-1">Map</h3>
+        <div id="mapBox"></div>
+        <h4>Trails</h4>
+        <p class="foot" id="trailNote"></p>
+        <ul class="entries" id="trailList"></ul>
+      </div>
+      <div class="card">
+        <h3>Topics</h3>
+        <p id="topicText"></p>
+        <ul class="tlist" id="topicList"></ul>
+        <p class="foot" id="topicNote"></p>
+      </div>
+      <p class="foot">Plain counts from your own thoughts, never a label. A mirror, not a diagnosis.</p>
     </div>
   </section>
 
@@ -252,6 +411,13 @@ button:focus-visible, a:focus-visible { outline: 2px solid var(--accent); outlin
         </div>
       </fieldset>
     </div>
+    <div class="card">
+      <h3>Your topics</h3>
+      <p class="foot">Rename any of them. Thoughts keep their topic when you rename it.</p>
+      <div id="topicNames"></div>
+      <p class="alert" id="topicErr" role="alert" hidden></p>
+      <div class="actions"><button class="primary" type="button" id="topicSave">Save topic names</button></div>
+    </div>
     <div class="card" id="installSteps">
       <h3 id="installStepsHead" tabindex="-1">Add it to your Home Screen</h3>
       <ul>
@@ -277,7 +443,25 @@ button:focus-visible, a:focus-visible { outline: 2px solid var(--accent); outlin
       <p>Ideas or problems? <a id="aboutMail" href="mailto:freeforgood-apps+ownsight@proton.me">freeforgood-apps+ownsight@proton.me</a></p>
     </div>
   </section>
+
+  <!-- Pinned just above the tab bar; inside main so screen readers find it with the rest of the page -->
+  <div class="undo" id="undoBar" hidden>
+    <p id="undoText"></p>
+    <button type="button" id="undoBtn">Undo</button>
+  </div>
 </main>
+
+<dialog class="sheet" id="sheet" aria-labelledby="sheetHead">
+  <div class="sheetin">
+    <div class="sheettop">
+      <h2 id="sheetHead" tabindex="-1"></h2>
+      <button class="ghost" type="button" id="sheetClose">Close</button>
+    </div>
+    <div class="panel" id="sheetBody"></div>
+  </div>
+</dialog>
+
+<p class="sr-only" id="announce" role="status" aria-live="polite"></p>
 
 <nav class="tabbar" aria-label="Sections">
   <div class="tabs" role="tablist" id="tabs">
@@ -305,11 +489,195 @@ button:focus-visible, a:focus-visible { outline: 2px solid var(--accent); outlin
 "use strict";
 (() => {
   // ---- settings ----
-  const APP_VERSION = "0.1.0";
+  const APP_VERSION = "0.2.0";
   const PREFIX = "ownsight-v1";   // every name this app saves starts with this, so it never touches another app's data
   const FEEDBACK_EMAIL = "freeforgood-apps+ownsight@proton.me";
   const TABS = ["catch", "patterns", "decide", "me", "more"];
   const SIZES = ["", "lg", "xl"];   // text size: normal, large, extra large
+  const RECENT_PAGE = 20;           // thoughts shown at a time in Recent
+  const TRAILS_SHOWN = 10;          // trails listed under the Map
+  const EXAMPLE_COUNTS = [2, 1, 4, 1, 1, 1];   // the clearly marked example on Patterns, before there are 5 thoughts
+  const STAGE_HINTS = {
+    notice: "Something I saw, felt or heard", question: "Something I wonder about", idea: "A way it could go",
+    plan: "How and when I'll do it", do: "Something I did", check: "How it went, what I learned",
+  };
+  const FORWARD_PROMPTS = {   // the question asked when a thought moves forward to each stage
+    notice: "What do you notice now?", question: "What's the real question here?", idea: "What's one way to answer it?",
+    plan: "How and when will you do it?", do: "What did you do?", check: "How did it go? What did you learn?",
+  };
+
+  // ==== logic: start ====
+  // Plain functions: values in, values out. No screen and no storage, so they can be tested on their own.
+  const DATA_V = 1;   // data version. Data saved by a newer version is shown but never saved over.
+  const STAGES = ["notice", "question", "idea", "plan", "do", "check"];
+  const STAGE_NAMES = { notice: "Notice", question: "Question", idea: "Idea", plan: "Plan", do: "Do", check: "Check" };
+  const KINDS = ["thought", "decision", "moment"];
+  const DEFAULT_TOPICS = [
+    { id: "work", label: "Work" }, { id: "home", label: "Home" }, { id: "people", label: "People" },
+    { id: "money", label: "Money" }, { id: "me", label: "Me" },
+  ];
+  const LIMITS = { text: 1000, entries: 10000, topic: 20 };
+  const LEAN_FROM = 5;         // patterns show from 5 thoughts
+  const HEADING_FROM = 10;     // heading shows from 10
+  const FIRST_LOOK = 20;       // under this many, patterns say they're only a first look
+  const HEADING_WINDOW = 20;   // heading compares the newest (up to) 20 with the same number before them
+  const NUM = new Intl.NumberFormat();
+  const fmtN = (n) => NUM.format(n);
+
+  function defaults() {
+    return {
+      v: DATA_V, entries: [], topics: DEFAULT_TOPICS.map((t) => ({ id: t.id, label: t.label })),
+      profile: { decide: null, fuels: [], drains: [] }, bigFive: [], settings: {},
+    };
+  }
+  function isObj(x) { return x !== null && typeof x === "object" && !Array.isArray(x); }
+  function validAt(s) { return typeof s === "string" && s.length <= 64 && Number.isFinite(Date.parse(s)); }
+  function okEntry(e) {
+    return isObj(e) && typeof e.id === "string" && e.id.length > 0 && e.id.length <= 64 && KINDS.includes(e.kind) &&
+      typeof e.text === "string" && STAGES.includes(e.stage) && typeof e.topic === "string" && validAt(e.at) &&
+      (e.from == null || typeof e.from === "string");
+  }
+  function okTopic(t) { return isObj(t) && typeof t.id === "string" && t.id.length > 0 && typeof t.label === "string"; }
+  // Checks saved data: { ok: true, state, newer } or { ok: false }.
+  // Every field is kept, including ones later stages add, so an older version never trims them.
+  function readSaved(obj) {
+    if (!isObj(obj) || !Number.isInteger(obj.v) || obj.v < 1) return { ok: false };
+    const shapeOK = Array.isArray(obj.entries) && obj.entries.every(okEntry) &&
+      (obj.topics === undefined || (Array.isArray(obj.topics) && obj.topics.every(okTopic)));
+    const newer = obj.v > DATA_V;   // shown if it can be, never saved over
+    if (!shapeOK) return newer ? { ok: true, newer, state: defaults() } : { ok: false };
+    // A fresh object with every field except names that could change how objects behave
+    const state = {};
+    for (const k of Object.keys(obj)) if (k !== "__proto__" && k !== "constructor" && k !== "prototype") state[k] = obj[k];
+    const d = defaults();
+    if (!state.topics || !state.topics.length) state.topics = d.topics;
+    for (const k of ["profile", "bigFive", "settings"]) if (state[k] === undefined) state[k] = d[k];
+    return { ok: true, newer, state };
+  }
+  // What someone typed: { text } when it's fine, or { error: "empty" | "long" }
+  function cleanText(raw) {
+    const text = String(raw == null ? "" : raw).replace(/\r\n?/g, "\n").trim();
+    if (!text) return { error: "empty" };
+    if (text.length > LIMITS.text) return { error: "long" };
+    return { text };
+  }
+  // Topic names: { labels } when they're fine, or { error: "empty" | "long" | "same", index }
+  function cleanTopicNames(names) {
+    const labels = names.map((n) => String(n == null ? "" : n).replace(/\s+/g, " ").trim());
+    for (let i = 0; i < labels.length; i++) {
+      if (!labels[i]) return { error: "empty", index: i };
+      if (labels[i].length > LIMITS.topic) return { error: "long", index: i };
+      if (labels.slice(0, i).some((l) => l.toLowerCase() === labels[i].toLowerCase())) return { error: "same", index: i };
+    }
+    return { labels };
+  }
+  function nextStage(stage) { return STAGES[(STAGES.indexOf(stage) + 1) % STAGES.length]; }
+  // Oldest first. Thoughts with the same time keep their saved order.
+  function byTime(entries) {
+    return entries.map((e, i) => [Date.parse(e.at), i, e]).sort((a, b) => a[0] - b[0] || a[1] - b[1]).map((x) => x[2]);
+  }
+  function sum(list) { return list.reduce((a, b) => a + b, 0); }
+  function stageCounts(entries) {
+    const c = STAGES.map(() => 0);
+    for (const e of entries) { const i = STAGES.indexOf(e.stage); if (i >= 0) c[i]++; }
+    return c;
+  }
+  function topIndexes(counts) {
+    const max = Math.max(...counts);
+    return max > 0 ? counts.map((c, i) => (c === max ? i : -1)).filter((i) => i >= 0) : [];
+  }
+  function nameList(names) { return names.length < 2 ? names.join("") : names.slice(0, -1).join(", ") + " and " + names[names.length - 1]; }
+  // "Your thinking leans toward Idea: 3 of 5 thoughts so far."
+  function leanSentence(counts, example) {
+    const total = sum(counts), top = topIndexes(counts);
+    if (!total) return "";
+    const names = top.map((i) => STAGE_NAMES[STAGES[i]]), each = fmtN(counts[top[0]]);
+    const who = example ? "These made-up thoughts" : "Your thinking";
+    const soFar = example ? "" : " so far";
+    if (top.length === STAGES.length) return `${who} ${example ? "are" : "is"} spread evenly around the loop, with ${each} at each stage.`;
+    if (top.length > 1) return `${who} ${example ? "are" : "is"} split between ${nameList(names)}, with ${each} each, out of ${fmtN(total)}${soFar}.`;
+    return `${who} ${example ? "lean" : "leans"} toward ${names[0]}: ${each} of ${fmtN(total)}${example ? "" : " thoughts so far"}.`;
+  }
+  // Where things stop moving: the biggest pile-up before the next stage, like 4 at Idea for every 1 at Plan.
+  // It needs at least 2 waiting, and at least twice as many as at the next stage. The most left waiting (a − b) wins;
+  // a tie goes to the bigger ratio, then the earlier stage. Check → Notice is the loop starting over, not a stop.
+  function stuckPoint(counts) {
+    let best = null;
+    for (let i = 0; i < STAGES.length - 1; i++) {
+      const a = counts[i], b = counts[i + 1];
+      if (a < 2 || a < 2 * b) continue;
+      const ratio = b === 0 ? Infinity : a / b;
+      if (!best || a - b > best.a - best.b || (a - b === best.a - best.b && ratio > best.ratio)) best = { at: i, a, b, ratio };
+    }
+    return best;
+  }
+  function stuckSentence(sp) {
+    if (!sp) return "Nothing looks stuck right now. Your thoughts keep moving along the loop.";
+    const A = STAGE_NAMES[STAGES[sp.at]], B = STAGE_NAMES[STAGES[sp.at + 1]];
+    if (sp.b === 0) return `Things tend to stop at ${A}: ${fmtN(sp.a)} at ${A} so far, and none at ${B} yet.`;
+    if (sp.a % sp.b === 0) return `Things tend to stop at ${A}: ${fmtN(sp.a / sp.b)} at ${A} for every 1 at ${B}.`;
+    return `Things tend to stop at ${A}: about ${fmtN(Math.round(sp.ratio))} at ${A} for every 1 at ${B} (${fmtN(sp.a)} and ${fmtN(sp.b)} so far).`;
+  }
+  // Which way you're heading: the newest thoughts (up to 20) compared with the same number before them.
+  // Stages count 1 (Notice) to 6 (Check). Half a stage or more counts as a move. Worked in whole numbers, so rounding can't tip it.
+  function heading(entries) {
+    if (entries.length < HEADING_FROM) return null;
+    const t = byTime(entries);
+    const w = Math.min(HEADING_WINDOW, Math.floor(t.length / 2));
+    const pos = (list) => sum(list.map((e) => STAGES.indexOf(e.stage) + 1));
+    const newerSum = pos(t.slice(t.length - w)), olderSum = pos(t.slice(t.length - 2 * w, t.length - w));
+    const twice = 2 * (newerSum - olderSum);   // twice the change in the average, times w
+    return { w, newer: newerSum / w, older: olderSum / w, dir: twice >= w ? "later" : twice <= -w ? "earlier" : "steady" };
+  }
+  function nearestStage(avg) { return STAGE_NAMES[STAGES[Math.min(6, Math.max(1, Math.round(avg))) - 1]]; }
+  function headingSentence(h) {
+    if (h.dir === "later") return "Lately your thoughts sit later in the loop, closer to doing.";
+    if (h.dir === "earlier") return "Lately your thoughts sit earlier in the loop, closer to noticing.";
+    return "Lately your thoughts sit about where they were.";
+  }
+  function headingDetail(h) {
+    return `Your newest ${fmtN(h.w)} average around ${nearestStage(h.newer)}. The ${fmtN(h.w)} before them averaged around ${nearestStage(h.older)}.`;
+  }
+  // Per topic: how many thoughts, and the stage(s) most of them sit at
+  function topicSummary(entries, topics) {
+    return topics.map((t) => {
+      const mine = entries.filter((e) => e.topic === t.id);
+      return { id: t.id, label: t.label, count: mine.length, top: topIndexes(stageCounts(mine)).map((i) => STAGES[i]) };
+    });
+  }
+  function topicSentence(summary, total) {
+    const used = summary.filter((t) => t.count > 0);
+    if (!used.length) return "";
+    const max = Math.max(...used.map((t) => t.count));
+    const top = used.filter((t) => t.count === max);
+    if (top.length > 1) return `Your mind is split between ${nameList(top.map((t) => t.label))}, with ${fmtN(max)} ${max === 1 ? "thought" : "thoughts"} each.`;
+    const t = top[0];
+    return `Your mind is mostly on ${t.label}: ${fmtN(t.count)} of ${fmtN(total)} thoughts, mostly at ${nameList(t.top.map((s) => STAGE_NAMES[s]))}.`;
+  }
+  // Trails: thoughts linked by Move forward, grouped from the first one, newest trail first. Each lists its thoughts oldest first.
+  function trails(entries) {
+    const ids = new Set(entries.map((e) => e.id));
+    const linked = (e) => !!e.from && e.from !== e.id && ids.has(e.from);
+    const kids = new Map();
+    for (const e of entries) if (linked(e)) { if (!kids.has(e.from)) kids.set(e.from, []); kids.get(e.from).push(e); }
+    const out = [], seen = new Set();
+    for (const root of entries) {
+      if (linked(root) || !kids.has(root.id) || seen.has(root.id)) continue;
+      const list = [], stack = [root];
+      while (stack.length) {
+        const e = stack.pop();
+        if (seen.has(e.id)) continue;
+        seen.add(e.id);
+        list.push(e);
+        for (const k of kids.get(e.id) || []) stack.push(k);
+      }
+      const steps = byTime(list);
+      if (steps.length > 1) out.push({ root: root.id, steps, last: steps[steps.length - 1] });
+    }
+    return out.sort((a, b) => Date.parse(b.last.at) - Date.parse(a.last.at));
+  }
+  function trailOf(entries, id) { return trails(entries).find((t) => t.steps.some((s) => s.id === id)) || null; }
+  // ==== logic: end ====
 
   const $ = (id) => document.getElementById(id);
 
@@ -328,6 +696,821 @@ button:focus-visible, a:focus-visible { outline: 2px solid var(--accent); outlin
     clearTimeout(toastTimer);
     toastTimer = setTimeout(() => { $("toast").textContent = ""; }, 4000);
   }
+  // Read out by screen readers only (the undo bar shows the same words on screen)
+  function announce(msg) {
+    const a = $("announce");
+    a.textContent = "";
+    setTimeout(() => { a.textContent = msg; }, 60);
+  }
+  function showErr(id, msg) { const p = $(id); p.textContent = msg || ""; p.hidden = !msg; }
+  // Focus something on the screen showing now; if it's on a hidden tab, the current tab's button instead
+  function focusSafe(id) {
+    const t = $(id);
+    if (t && !t.closest("[hidden]")) { t.focus(); return; }
+    const cur = TABS.find((x) => !$("view-" + x).hidden) || "catch";
+    $("tab-" + cur).focus();
+  }
+
+  // ---- safe elements from data: the toolkit's el(), copied as it is ----
+  // Build elements from data safely: text only, no event handlers, no javascript: links.
+  const URL_ATTRS = ['href', 'src', 'action', 'formaction', 'xlink:href'];
+
+  function safeUrl(value) {
+    try {
+      return ['http:', 'https:', 'mailto:'].includes(new URL(String(value), location.href).protocol);
+    } catch {
+      return false;
+    }
+  }
+
+  function el(tag, text, attrs = {}) {
+    const node = document.createElement(tag);
+    if (text != null) node.textContent = String(text);
+    for (const [name, value] of Object.entries(attrs)) {
+      const n = name.toLowerCase();
+      if (n.startsWith('on') || n === 'srcdoc') continue;
+      if (URL_ATTRS.includes(n) && !safeUrl(value)) continue;
+      node.setAttribute(name, String(value));
+    }
+    return node;
+  }
+
+  // ---- saving on this device ----
+  // IndexedDB database "ownsight-v1", store "data". Record "state" holds the saved data as JSON plus a save count (rev).
+  // A save only goes ahead when the stored count still matches this window's, so an older window can't save over newer thoughts.
+  // Every save is read back to check it. Data that can't be read is set aside (record "damaged-<rev>") and never saved over.
+  const STORE = "data";
+  const STATE_KEY = "state";
+  let db = null;
+  let state = defaults();
+  let rev = 0;               // save count of the data on screen
+  let loaded = false;
+  let hold = "";             // why saving is paused: "damaged", "newer" or "unread"; "" when it isn't
+  let asideRec;              // damaged data, kept to set aside again if that failed
+  let asideOK = false;
+  let saveFailed = false;
+  let channel = null;
+  let askedToKeep = false;
+
+  function openDb() {
+    return new Promise((resolve, reject) => {
+      const timer = setTimeout(() => reject(new Error("timed out")), 5000);
+      const req = indexedDB.open(PREFIX, 1);
+      req.onupgradeneeded = () => { const d = req.result; if (!d.objectStoreNames.contains(STORE)) d.createObjectStore(STORE); };
+      req.onsuccess = () => {
+        clearTimeout(timer);
+        const d = req.result;
+        // A newer Ownsight in another window needs this one to let go before it can update the database
+        d.onversionchange = () => { d.close(); if (db === d) db = null; };
+        resolve(d);
+      };
+      req.onerror = () => { clearTimeout(timer); reject(req.error || new Error("could not open")); };
+    });
+  }
+  function dbGet(key) {
+    return new Promise((resolve, reject) => {
+      const tx = db.transaction(STORE, "readonly");
+      const r = tx.objectStore(STORE).get(key);
+      tx.oncomplete = () => resolve(r.result);
+      tx.onerror = tx.onabort = () => reject(tx.error || new Error("read failed"));
+    });
+  }
+  function dbPut(key, value) {
+    return new Promise((resolve, reject) => {
+      const tx = db.transaction(STORE, "readwrite", { durability: "strict" });
+      tx.objectStore(STORE).put(value, key);
+      tx.oncomplete = () => resolve();
+      tx.onerror = tx.onabort = () => reject(tx.error || new Error("write failed"));
+    });
+  }
+  function revOf(rec) { return isObj(rec) && Number.isInteger(rec.rev) ? rec.rev : 0; }
+  // Writes only if nobody saved since this window last read. Resolves "ok" or "conflict".
+  function dbWrite(json) {
+    return new Promise((resolve, reject) => {
+      const tx = db.transaction(STORE, "readwrite", { durability: "strict" });
+      const store = tx.objectStore(STORE);
+      let result = "ok";
+      const g = store.get(STATE_KEY);
+      g.onsuccess = () => {
+        if (revOf(g.result) !== rev) { result = "conflict"; return; }
+        store.put({ rev: rev + 1, json }, STATE_KEY);
+      };
+      tx.oncomplete = () => resolve(result);
+      tx.onerror = tx.onabort = () => reject(tx.error || new Error("write failed"));
+    });
+  }
+  // Puts a saved record on screen
+  async function useRecord(rec) {
+    rev = revOf(rec);
+    if (rec === undefined) { state = defaults(); hold = ""; return; }
+    let read = { ok: false };
+    if (isObj(rec) && typeof rec.json === "string") {
+      try { read = readSaved(JSON.parse(rec.json)); } catch (e) { read = { ok: false }; }
+    }
+    if (read.ok) { state = read.state; hold = read.newer ? "newer" : ""; return; }
+    state = defaults();
+    hold = "damaged";
+    asideRec = rec;
+    await setAside();
+  }
+  async function setAside() {
+    try { await dbPut("damaged-" + rev, asideRec); asideOK = true; } catch (e) { asideOK = false; }
+  }
+  async function loadSaved() {
+    try { db = await openDb(); } catch (e) { db = null; saveFailed = true; return; }
+    let rec;
+    try { rec = await dbGet(STATE_KEY); } catch (e) { hold = "unread"; return; }
+    await useRecord(rec);
+  }
+  // One job at a time: loading, saving and picking up changes from other windows never overlap
+  let chain = Promise.resolve();
+  function queue(job) { chain = chain.then(job).catch(() => {}); return chain; }
+  async function trySave(json) {
+    if (!db) db = await openDb();
+    if ((await dbWrite(json)) === "conflict") return "lost";
+    const back = await dbGet(STATE_KEY);
+    if (revOf(back) !== rev + 1) return "newer";   // another window saved right after this one, on top of it
+    if (!isObj(back) || back.json !== json) throw new Error("read back didn't match");
+    rev = back.rev;
+    return "ok";
+  }
+  async function saveNow() {
+    if (hold) { renderStatus(); return; }
+    const json = JSON.stringify(state);
+    let result = "";
+    for (let tries = 0; tries < 2 && !result; tries++) {
+      try { result = await trySave(json); } catch (e) { db = null; }   // a lost connection gets one fresh try
+    }
+    saveFailed = !result;
+    if (result === "ok") { tellOthers(); askToKeep(); }
+    if (result === "lost" || result === "newer") await reload(result === "lost");
+    renderStatus();
+    renderWarn();
+  }
+  // Picks up a save from another window. lost: this window's last change couldn't be saved.
+  async function reload(lost) {
+    if (!db) return;
+    let rec;
+    try { rec = await dbGet(STATE_KEY); } catch (e) { return; }
+    if (!lost && revOf(rec) === rev && hold !== "unread") return;
+    await useRecord(rec);
+    renderAll();
+    if (lost) toast("This changed in another window, so Ownsight is showing the newest. Your last change wasn't saved.");
+  }
+  function tellOthers() { try { if (channel) channel.postMessage(rev); } catch (e) { /* other windows still check when shown */ } }
+  function wireSync() {
+    try { channel = new BroadcastChannel(PREFIX); channel.onmessage = () => queue(() => reload(false)); } catch (e) { channel = null; }
+    document.addEventListener("visibilitychange", () => { if (!document.hidden && loaded) queue(() => reload(false)); });
+  }
+  // Ask the browser to keep this site's data (granted quietly where supported; Firefox would ask, so not there)
+  function askToKeep() {
+    if (askedToKeep) return;
+    askedToKeep = true;
+    try {
+      if (!navigator.storage || !navigator.storage.persist || /Firefox\//.test(navigator.userAgent)) return;
+      navigator.storage.persisted().then((p) => { if (!p) return navigator.storage.persist(); }).catch(() => {});
+    } catch (e) {}
+  }
+
+  // ---- changes ----
+  const HOLD_TOAST = {
+    damaged: "Ownsight isn't saving right now, so your saved thoughts aren't written over. See the note at the top of Catch.",
+    newer: "A newer Ownsight saved your thoughts, so this one won't change them. Close Ownsight and open it again while online.",
+    unread: "Ownsight couldn't read what's saved here, so it isn't saving over it. See the note at the top of Catch.",
+  };
+  function canChange() {
+    if (!loaded) { toast("One moment. Ownsight is still opening."); return false; }
+    if (hold) { toast(HOLD_TOAST[hold]); return false; }
+    return true;
+  }
+  // Every change goes in line after anything already happening, then shows and saves
+  function commit(mutate) {
+    return queue(async () => {
+      if (hold) { toast(HOLD_TOAST[hold]); return; }
+      mutate(state);
+      renderAll();
+      await saveNow();
+    });
+  }
+  function findEntry(id) { return state.entries.find((e) => e.id === id) || null; }
+  function removeEntry(s, id) { const i = s.entries.findIndex((e) => e.id === id); if (i >= 0) s.entries.splice(i, 1); return i; }
+  function setFields(s, id, f) { const e = s.entries.find((x) => x.id === id); if (e) { e.text = f.text; e.stage = f.stage; e.topic = f.topic; } }
+  function topicLabel(id) { const t = state.topics.find((x) => x.id === id); return t ? t.label : "No topic"; }
+  function newId() {
+    if (crypto.randomUUID) return crypto.randomUUID();
+    return Array.from(crypto.getRandomValues(new Uint8Array(16)), (b) => b.toString(16).padStart(2, "0")).join("");
+  }
+  const TIME = new Intl.DateTimeFormat(undefined, { hour: "numeric", minute: "2-digit" });
+  const DAY = new Intl.DateTimeFormat(undefined, { weekday: "short", month: "short", day: "numeric" });
+  const DAY_YEAR = new Intl.DateTimeFormat(undefined, { month: "short", day: "numeric", year: "numeric" });
+  const PCT = new Intl.NumberFormat(undefined, { style: "percent", maximumFractionDigits: 0 });
+  function fmtWhen(iso) {
+    const d = new Date(iso), now = new Date(), yest = new Date(now);
+    yest.setDate(now.getDate() - 1);
+    const key = (x) => x.getFullYear() * 10000 + x.getMonth() * 100 + x.getDate();
+    if (key(d) === key(now)) return "Today, " + TIME.format(d);
+    if (key(d) === key(yest)) return "Yesterday, " + TIME.format(d);
+    return d.getFullYear() === now.getFullYear() ? DAY.format(d) : DAY_YEAR.format(d);
+  }
+
+  // ---- saving status and problems ----
+  function renderStatus() {
+    let msg = "", warn = false;
+    if (!loaded) msg = "Opening…";
+    else if (hold) { msg = "Not saving right now"; warn = true; }
+    else if (saveFailed) { msg = "Not saving on this device"; warn = true; }
+    else if (rev > 0) msg = "Saved on this device";
+    $("status").textContent = msg;
+    $("status").classList.toggle("warn", warn);
+  }
+  const WARN = {
+    failed: {
+      head: "Not saving on this device",
+      text: "Your thoughts aren't being saved here right now. This can happen in a private browsing window, or when the device's storage is full. Keep Ownsight open, free up some space, then tap Try again.",
+      btn: "Try again",
+    },
+    damaged: {
+      head: "Your saved thoughts couldn't be read",
+      text: "Ownsight set them aside on this device and won't save over them. A way to bring back a copy comes in a later update. To keep going now, you can start fresh. What couldn't be read stays set aside.",
+      btn: "Start fresh",
+    },
+    newer: {
+      head: "Saved by a newer Ownsight",
+      text: "Your thoughts were saved by a newer version of Ownsight, so this one won't save over them. Close Ownsight and open it again while online to update.",
+      btn: "",
+    },
+    unread: {
+      head: "Couldn't read your saved thoughts",
+      text: "Ownsight couldn't open what's saved on this device, so it won't save over it. Tap Try again, or close Ownsight and open it again.",
+      btn: "Try again",
+    },
+  };
+  let freshArmed = 0;
+  function renderWarn() {
+    const kind = loaded ? hold || (saveFailed ? "failed" : "") : "";
+    const card = $("warnCard");
+    if (!kind) { card.hidden = true; card.dataset.kind = ""; return; }
+    if (card.dataset.kind === kind && !card.hidden) return;   // already showing; don't read it out again
+    card.dataset.kind = kind;
+    $("warnHead").textContent = WARN[kind].head;
+    $("warnText").textContent = WARN[kind].text;
+    $("warnBtn").textContent = WARN[kind].btn;
+    $("warnBtn").hidden = !WARN[kind].btn;
+    card.hidden = false;
+  }
+  function wireWarn() {
+    $("warnBtn").addEventListener("click", () => {
+      const kind = $("warnCard").dataset.kind;
+      if (kind === "failed") {
+        queue(saveNow).then(() => toast(saveFailed ? "Still not saving. Free up some space, or leave private browsing." : "Saved on this device."));
+      } else if (kind === "unread") {
+        queue(async () => {
+          try { if (!db) db = await openDb(); const rec = await dbGet(STATE_KEY); hold = ""; await useRecord(rec); } catch (e) { hold = "unread"; }
+          renderAll();
+          toast(hold === "unread" ? "Still couldn't read it. Close Ownsight and open it again." : "Your thoughts are back.");
+        });
+      } else if (kind === "damaged") {
+        // Two taps, since it leaves the old data behind
+        if (!freshArmed) {
+          $("warnBtn").textContent = "Tap again to start fresh";
+          freshArmed = setTimeout(() => { freshArmed = 0; $("warnBtn").textContent = WARN.damaged.btn; }, 5000);
+          return;
+        }
+        clearTimeout(freshArmed);
+        freshArmed = 0;
+        $("warnBtn").textContent = WARN.damaged.btn;
+        queue(async () => {
+          if (!asideOK) await setAside();
+          if (!asideOK) { toast("Ownsight couldn't set your old thoughts aside, so it won't save over them."); return; }
+          hold = "";
+          state = defaults();
+          renderAll();
+          await saveNow();
+          toast("Started fresh. What couldn't be read is still set aside on this device.");
+          focusSafe("catchHead");
+        });
+      }
+    });
+  }
+
+  // ---- undo, just above the tab bar ----
+  let undoFn = null, undoTimer = 0;
+  function showUndo(msg, fn) {
+    undoFn = fn;
+    $("undoText").textContent = msg;
+    $("undoBar").hidden = false;
+    document.documentElement.classList.add("has-undo");
+    announce(msg);
+    armUndo();
+  }
+  function armUndo() {
+    clearTimeout(undoTimer);
+    undoTimer = setTimeout(() => { if ($("undoBar").contains(document.activeElement)) armUndo(); else hideUndo(); }, 10000);
+  }
+  function hideUndo() {
+    clearTimeout(undoTimer);
+    undoFn = null;
+    $("undoBar").hidden = true;
+    document.documentElement.classList.remove("has-undo");
+  }
+  function wireUndo() {
+    $("undoBtn").addEventListener("click", () => { const fn = undoFn; hideUndo(); if (fn) fn(); });
+  }
+
+  // ---- choosing a stage and a topic (Catch and the sheet share these) ----
+  function setPressed(box, value, attr) {
+    for (const b of box.querySelectorAll("button")) b.setAttribute("aria-pressed", b.dataset[attr] === value ? "true" : "false");
+  }
+  // onPick(stage) returns false to keep the choice as it was
+  function stagePicker(selected, onPick) {
+    const box = el("div", null, { class: "stages" });
+    for (const s of STAGES) {
+      const b = el("button", null, { type: "button", class: "stage", "data-stage": s, "aria-pressed": s === selected ? "true" : "false" });
+      b.append(el("span", STAGE_NAMES[s], { class: "sname" }), el("span", STAGE_HINTS[s], { class: "shint" }));
+      b.addEventListener("click", () => { if (onPick(s) !== false) setPressed(box, s, "stage"); });
+      box.append(b);
+    }
+    return box;
+  }
+
+  // ---- catch ----
+  let catchStage = "";
+  let catchPicker = null;
+  const CATCH_ERR = {
+    empty: "Write your thought first, then tap where it sits.",
+    long: "That's a bit long. Keep it under " + fmtN(LIMITS.text) + " characters.",
+    full: "Ownsight holds up to " + fmtN(LIMITS.entries) + " thoughts. Delete a few old ones to add more.",
+  };
+  const FORM_ERR = { empty: "Write something first.", long: CATCH_ERR.long, full: CATCH_ERR.full };
+  function renderCount(area, out) {
+    const left = LIMITS.text - area.value.length;
+    out.hidden = left > 100;
+    out.textContent = left === 1 ? "1 character left" : fmtN(Math.max(0, left)) + " characters left";
+  }
+  function resetCatchStage() {
+    catchStage = "";
+    setPressed(catchPicker, "", "stage");
+    $("catchTopicStep").hidden = true;
+  }
+  function pickCatchStage(s) {
+    const area = $("catchText");
+    const r = cleanText(area.value);
+    if (r.error) { showErr("catchErr", CATCH_ERR[r.error]); area.focus(); return false; }
+    showErr("catchErr", "");
+    catchStage = s;
+    $("catchTopicStep").hidden = false;
+    if (document.activeElement === area) area.blur();   // tuck the keyboard away so the topics show
+    $("catchTopicStep").scrollIntoView({ block: "nearest" });
+    announce(STAGE_NAMES[s] + " picked. Now tap a topic to save it.");
+    return true;
+  }
+  function saveCatch(topicId) {
+    const area = $("catchText");
+    const r = cleanText(area.value);
+    if (r.error) { showErr("catchErr", CATCH_ERR[r.error]); area.focus(); return; }
+    if (!catchStage) return;
+    if (state.entries.length >= LIMITS.entries) { showErr("catchErr", CATCH_ERR.full); return; }
+    if (!canChange()) return;
+    const entry = { id: newId(), kind: "thought", text: r.text, stage: catchStage, topic: topicId, at: new Date().toISOString(), from: null };
+    commit((s) => { s.entries.push(entry); });
+    area.value = "";
+    renderCount(area, $("catchCount"));
+    resetCatchStage();
+    $("catchHead").focus();
+    showUndo("Saved at " + STAGE_NAMES[entry.stage] + ", in " + topicLabel(entry.topic) + ".", () => {
+      commit((s) => { removeEntry(s, entry.id); });
+      const back = !$("catchText").value;
+      if (back) { $("catchText").value = entry.text; renderCount($("catchText"), $("catchCount")); }
+      announce(back ? "Undone. Your thought is back in the box." : "Undone.");
+      focusSafe("catchHead");
+    });
+  }
+  function renderCatch() {
+    $("catchIntro").hidden = !(loaded && !hold && state.entries.length === 0);
+    const box = $("catchTopics");
+    box.replaceChildren();
+    for (const t of state.topics) {
+      const b = el("button", t.label, { type: "button", class: "topic" });
+      b.addEventListener("click", () => saveCatch(t.id));
+      box.append(b);
+    }
+  }
+  function wireCatch() {
+    const area = $("catchText");
+    area.maxLength = LIMITS.text;
+    catchPicker = stagePicker("", pickCatchStage);
+    $("catchStages").append(catchPicker);
+    area.addEventListener("input", () => { showErr("catchErr", ""); renderCount(area, $("catchCount")); });
+  }
+
+  // ---- recent ----
+  let recentShown = RECENT_PAGE;
+  // Lists get rebuilt after changes; keyboard and VoiceOver focus stays on the same thought
+  function focusedKey(list) {
+    const a = document.activeElement;
+    return a && list.contains(a) ? a.dataset.id || a.dataset.root || "" : "";
+  }
+  function refocusKey(list, key, fallback) {
+    if (!key) return;
+    for (const b of list.querySelectorAll("button")) if (b.dataset.id === key || b.dataset.root === key) { b.focus({ preventScroll: true }); return; }
+    focusSafe(fallback);
+  }
+  function entryItem(e) {
+    const li = el("li");
+    const b = el("button", null, { type: "button", class: "entry", "data-id": e.id });
+    b.append(el("span", e.text, { class: "etext" }));
+    const meta = el("span", null, { class: "emeta" });
+    meta.append(el("span", STAGE_NAMES[e.stage], { class: "chip" }), el("span", topicLabel(e.topic) + " · " + fmtWhen(e.at)));
+    const parent = e.from ? findEntry(e.from) : null;
+    if (parent) meta.append(el("span", "Moved on from " + STAGE_NAMES[parent.stage]));
+    b.append(meta);
+    li.append(b);
+    return li;
+  }
+  function renderRecent() {
+    const list = $("recentList");
+    const key = focusedKey(list);
+    const all = byTime(state.entries).reverse();
+    list.replaceChildren(...all.slice(0, recentShown).map(entryItem));
+    $("recentEmpty").hidden = all.length > 0;
+    $("recentEmpty").textContent = !loaded ? "Opening your thoughts…" : hold && hold !== "newer"
+      ? "Your saved thoughts can't be shown right now."
+      : "Nothing here yet. Your thoughts will show up here.";
+    const left = all.length - recentShown;
+    $("recentMore").hidden = left <= 0;
+    $("recentMore").textContent = "Show " + fmtN(Math.min(RECENT_PAGE, Math.max(0, left))) + " more";
+    refocusKey(list, key, "recentHead");
+  }
+  function wireRecent() {
+    $("recentList").addEventListener("click", (ev) => {
+      const b = ev.target.closest("button.entry");
+      if (b) openSheet("view", b.dataset.id, b);
+    });
+    $("recentMore").addEventListener("click", () => {
+      const first = recentShown;
+      recentShown += RECENT_PAGE;
+      renderRecent();
+      const next = $("recentList").querySelectorAll("button.entry")[first];
+      if (next) next.focus();
+    });
+  }
+
+  // ---- the sheet: open a thought, move it forward, edit or delete it, follow a trail ----
+  const sheet = { mode: "", id: "", opener: null, list: "", key: "", after: "" };
+  function openSheet(mode, id, opener) {
+    sheet.opener = opener || document.activeElement;
+    const ul = sheet.opener && sheet.opener.closest ? sheet.opener.closest("ul") : null;
+    sheet.list = ul ? ul.id : "";
+    sheet.key = sheet.opener && sheet.opener.dataset ? sheet.opener.dataset.id || sheet.opener.dataset.root || "" : "";
+    renderSheet(mode, id);
+    const dlg = $("sheet");
+    if (!dlg.open) { if (dlg.showModal) dlg.showModal(); else dlg.setAttribute("open", ""); }
+    $("sheetHead").focus();
+  }
+  function closeSheet() {
+    const dlg = $("sheet");
+    if (!dlg.open) return;
+    if (dlg.close) dlg.close(); else { dlg.removeAttribute("open"); dlg.dispatchEvent(new Event("close")); }
+  }
+  function homeHead() { return sheet.list === "trailList" ? "mapHead" : "recentHead"; }
+  function refocus() {
+    if (sheet.after) { const a = sheet.after; sheet.after = ""; focusSafe(a); return; }
+    const o = sheet.opener;
+    if (o && o.isConnected && !o.closest("[hidden]")) { o.focus(); return; }
+    if (sheet.list && sheet.key) { refocusKey($(sheet.list), sheet.key, homeHead()); return; }
+    focusSafe(homeHead());
+  }
+  function switchSheet(mode, id) { renderSheet(mode, id); $("sheetHead").focus(); }
+  function renderSheet(mode, id) {
+    sheet.mode = mode;
+    sheet.id = id;
+    const body = $("sheetBody");
+    body.replaceChildren();
+    if (mode === "trail") { sheetTrail(id, body); return; }
+    const e = findEntry(id);
+    if (!e) { closeSheet(); return; }
+    if (mode === "forward") sheetForward(e, body);
+    else if (mode === "edit") sheetEdit(e, body);
+    else sheetView(e, body);
+  }
+  function button(text, cls, onClick) {
+    const b = el("button", text, { type: "button", class: cls });
+    b.addEventListener("click", onClick);
+    return b;
+  }
+  function stepList(steps, currentId) {
+    const ol = el("ol", null, { class: "entries" });
+    for (const s of steps) {
+      const li = el("li");
+      const item = s.id === currentId ? el("div", null, { class: "entry current" }) : el("button", null, { type: "button", class: "entry" });
+      const meta = el("span", null, { class: "emeta" });
+      meta.append(el("span", STAGE_NAMES[s.stage], { class: "chip" }), el("span", fmtWhen(s.at)));
+      if (s.id === currentId) meta.append(el("span", "This one"));
+      item.append(meta, el("span", s.text, { class: "etext short" }));
+      if (s.id !== currentId) item.addEventListener("click", () => switchSheet("view", s.id));
+      li.append(item);
+      ol.append(li);
+    }
+    return ol;
+  }
+  function sheetView(e, body) {
+    $("sheetHead").textContent = "Your thought";
+    body.append(el("p", e.text, { class: "sheet-text" }));
+    const meta = el("p", null, { class: "emeta" });
+    meta.append(el("span", STAGE_NAMES[e.stage], { class: "chip" }), el("span", topicLabel(e.topic) + " · " + fmtWhen(e.at)));
+    body.append(meta);
+    const t = trailOf(state.entries, e.id);
+    if (t) body.append(el("h3", "Its trail, from first to latest"), stepList(t.steps, e.id));
+    const acts = el("div", null, { class: "actions" });
+    acts.append(
+      button("Move forward", "primary", () => { if (canChange()) switchSheet("forward", e.id); }),
+      button("Edit", "ghost", () => { if (canChange()) switchSheet("edit", e.id); }),
+      button("Delete", "ghost", () => deleteEntry(e)),
+    );
+    body.append(acts);
+  }
+  function deleteEntry(e) {
+    if (!canChange()) return;
+    const id = e.id;
+    let index = -1;
+    sheet.after = homeHead();   // the thought's own button goes away
+    closeSheet();
+    commit((s) => { index = removeEntry(s, id); });
+    showUndo("Thought deleted.", () => {
+      commit((s) => { if (index >= 0 && !s.entries.some((x) => x.id === id)) s.entries.splice(Math.min(index, s.entries.length), 0, e); });
+      announce("Undone. The thought is back.");
+      focusSafe("recentHead");
+    });
+  }
+  function formBits(label, value) {
+    const area = el("textarea", null, { id: "sheetText", rows: "3", autocomplete: "off" });
+    area.maxLength = LIMITS.text;
+    area.value = value;
+    const lab = el("label", label, { for: "sheetText", class: "field-label" });
+    const err = el("p", null, { class: "alert", role: "alert" });
+    err.hidden = true;
+    area.addEventListener("input", () => { err.hidden = true; });
+    return { area, lab, err, fail(msg) { err.textContent = msg; err.hidden = false; area.focus(); } };
+  }
+  function sheetForward(e, body) {
+    $("sheetHead").textContent = "Move it forward";
+    let to = nextStage(e.stage);
+    const from = el("p", null, { class: "emeta" });
+    from.append(el("span", "From", {}), el("span", STAGE_NAMES[e.stage], { class: "chip" }));
+    body.append(from, el("p", e.text, { class: "etext short" }));
+    const f = formBits(FORWARD_PROMPTS[to], "");
+    const fs = el("fieldset", null, { class: "pick" });
+    fs.append(el("legend", "Next stage"), stagePicker(to, (s) => { to = s; f.lab.textContent = FORWARD_PROMPTS[s]; return true; }));
+    const acts = el("div", null, { class: "actions" });
+    acts.append(
+      button("Save it", "primary", () => {
+        const r = cleanText(f.area.value);
+        if (r.error) { f.fail(FORM_ERR[r.error]); return; }
+        if (state.entries.length >= LIMITS.entries) { f.fail(FORM_ERR.full); return; }
+        if (!canChange()) return;
+        const entry = { id: newId(), kind: "thought", text: r.text, stage: to, topic: e.topic, at: new Date().toISOString(), from: e.id };
+        closeSheet();
+        commit((s) => { s.entries.push(entry); });
+        showUndo("Moved forward to " + STAGE_NAMES[to] + ".", () => {
+          commit((s) => { removeEntry(s, entry.id); });
+          announce("Undone.");
+          focusSafe(homeHead());
+        });
+      }),
+      button("Cancel", "ghost", () => switchSheet("view", e.id)),
+    );
+    body.append(fs, f.lab, f.area, f.err, acts);
+  }
+  function sheetEdit(e, body) {
+    $("sheetHead").textContent = "Edit your thought";
+    let st = e.stage, tp = e.topic;
+    const f = formBits("Your thought", e.text);
+    const sfs = el("fieldset", null, { class: "pick" });
+    sfs.append(el("legend", "Stage"), stagePicker(st, (s) => { st = s; return true; }));
+    const tfs = el("fieldset", null, { class: "pick" });
+    const tbox = el("div", null, { class: "topics" });
+    for (const t of state.topics) {
+      const b = el("button", t.label, { type: "button", class: "topic", "data-topic": t.id, "aria-pressed": t.id === tp ? "true" : "false" });
+      b.addEventListener("click", () => { tp = t.id; setPressed(tbox, tp, "topic"); });
+      tbox.append(b);
+    }
+    tfs.append(el("legend", "Topic"), tbox);
+    const acts = el("div", null, { class: "actions" });
+    acts.append(
+      button("Save changes", "primary", () => {
+        const r = cleanText(f.area.value);
+        if (r.error) { f.fail(FORM_ERR[r.error]); return; }
+        if (r.text === e.text && st === e.stage && tp === e.topic) { closeSheet(); toast("Nothing changed."); return; }
+        if (!canChange()) return;
+        const id = e.id, before = { text: e.text, stage: e.stage, topic: e.topic }, after = { text: r.text, stage: st, topic: tp };
+        closeSheet();
+        commit((s) => setFields(s, id, after));
+        showUndo("Changes saved.", () => {
+          commit((s) => setFields(s, id, before));
+          announce("Undone. The thought is back as it was.");
+          focusSafe(homeHead());
+        });
+      }),
+      button("Cancel", "ghost", () => switchSheet("view", e.id)),
+    );
+    body.append(f.lab, f.area, sfs, tfs, f.err, acts);
+  }
+  function sheetTrail(root, body) {
+    const t = trails(state.entries).find((x) => x.root === root);
+    if (!t) { closeSheet(); return; }
+    $("sheetHead").textContent = "Trail";
+    body.append(el("p", "From first to latest. Tap one to open it.", { class: "foot" }), stepList(t.steps, ""));
+  }
+  function wireSheet() {
+    const dlg = $("sheet");
+    $("sheetClose").addEventListener("click", closeSheet);
+    dlg.addEventListener("close", () => {
+      if (dlg.open) return;   // reopened before this arrived
+      sheet.mode = "";
+      sheet.id = "";
+      $("sheetBody").replaceChildren();
+      refocus();
+    });
+    // Tapping the dimmed area closes it, but never while something is being written
+    dlg.addEventListener("click", (ev) => { if (ev.target === dlg && (sheet.mode === "view" || sheet.mode === "trail")) closeSheet(); });
+  }
+  // After a change from another window, close the sheet if its thought is gone
+  function checkSheet() {
+    if (!sheet.mode) return;
+    if (sheet.mode === "trail" ? !trails(state.entries).some((t) => t.root === sheet.id) : !findEntry(sheet.id)) {
+      sheet.after = homeHead();
+      closeSheet();
+    }
+  }
+
+  // ---- patterns ----
+  function renderBars(list, counts) {
+    const total = sum(counts), top = topIndexes(counts);
+    list.replaceChildren(...STAGES.map((s, i) => {
+      const li = el("li", null, top.includes(i) ? { class: "top" } : {});
+      const track = el("span", null, { class: "btrack", "aria-hidden": "true" });
+      const fill = el("span", null, { class: "bfill" });
+      fill.style.width = (total ? (counts[i] / total) * 100 : 0) + "%";
+      track.append(fill);
+      li.append(el("span", STAGE_NAMES[s], { class: "bname" }), track,
+        el("span", fmtN(counts[i]) + " (" + PCT.format(total ? counts[i] / total : 0) + ")", { class: "bnum" }));
+      return li;
+    }));
+  }
+  function renderExample() {
+    $("exLean").textContent = leanSentence(EXAMPLE_COUNTS, true);
+    renderBars($("exBars"), EXAMPLE_COUNTS);
+    $("exStuck").textContent = stuckSentence(stuckPoint(EXAMPLE_COUNTS));
+  }
+  function renderMap(counts, sp) {
+    const NS = "http://www.w3.org/2000/svg";
+    const s = (tag, attrs, text) => {
+      const n = document.createElementNS(NS, tag);
+      for (const [k, v] of Object.entries(attrs)) n.setAttribute(k, String(v));
+      if (text != null) n.textContent = text;
+      return n;
+    };
+    const C = 160, R = 100, rad = (deg) => (deg * Math.PI) / 180;
+    const said = STAGES.map((st, i) => STAGE_NAMES[st] + " " + fmtN(counts[i])).join(", ");
+    const svg = s("svg", {
+      viewBox: "0 0 320 320", class: "map", role: "img", focusable: "false",
+      "aria-label": "The thinking loop with your counts: " + said + "." + (sp ? " Stuck point: " + STAGE_NAMES[STAGES[sp.at]] + "." : ""),
+    });
+    svg.append(s("circle", { cx: C, cy: C, r: R, class: "ring" }));
+    STAGES.forEach((st, i) => {
+      const a = -90 + i * 60;
+      // a small arrow halfway to the next stage, pointing the way around the loop
+      const m = rad(a + 30);
+      svg.append(s("path", { d: "M -5 -6 L 5 0 L -5 6 Z", class: "arrow", transform: `translate(${(C + R * Math.cos(m)).toFixed(1)} ${(C + R * Math.sin(m)).toFixed(1)}) rotate(${a + 120})` }));
+      const x = (C + R * Math.cos(rad(a))).toFixed(1), y = (C + R * Math.sin(rad(a))).toFixed(1);
+      const stuck = !!sp && sp.at === i;
+      svg.append(s("circle", { cx: x, cy: y, r: 24, class: stuck ? "node stuck" : "node" }));
+      const cls = "count" + (stuck ? " stuck" : "") + (counts[i] >= 1000 ? " small" : "");
+      svg.append(s("text", { x, y, class: cls, "text-anchor": "middle", "dominant-baseline": "central" }, fmtN(counts[i])));
+      svg.append(s("text", {
+        x: (C + (R + 46) * Math.cos(rad(a))).toFixed(1), y: (C + (R + 46) * Math.sin(rad(a))).toFixed(1),
+        class: "label", "text-anchor": "middle", "dominant-baseline": "central",
+      }, STAGE_NAMES[st]));
+    });
+    // The stuck point named in words in the middle of the loop, so it isn't shown by color alone
+    if (sp) {
+      svg.append(s("text", { x: C, y: C - 10, class: "flag", "text-anchor": "middle", "dominant-baseline": "central" }, "Stuck point:"));
+      svg.append(s("text", { x: C, y: C + 10, class: "flag", "text-anchor": "middle", "dominant-baseline": "central" }, STAGE_NAMES[STAGES[sp.at]]));
+    }
+    $("mapBox").replaceChildren(svg);
+  }
+  function trailItem(t) {
+    const li = el("li");
+    const b = el("button", null, { type: "button", class: "entry", "data-root": t.root });
+    const path = el("span", null, { class: "path" });
+    t.steps.forEach((s, i) => {
+      if (i) path.append(el("span", "→", { class: "arr", "aria-hidden": "true" }));
+      path.append(el("span", STAGE_NAMES[s.stage], { class: "chip" }));
+    });
+    b.append(path, el("span", t.steps[0].text, { class: "etext short" }),
+      el("span", fmtN(t.steps.length) + " thoughts · latest " + fmtWhen(t.last.at), { class: "emeta" }));
+    li.append(b);
+    return li;
+  }
+  function renderTrails() {
+    const list = $("trailList");
+    const key = focusedKey(list);
+    const all = trails(state.entries);
+    list.replaceChildren(...all.slice(0, TRAILS_SHOWN).map(trailItem));
+    $("trailNote").textContent = !all.length
+      ? "No trails yet. Open a thought in Recent and tap Move forward to start one."
+      : (all.length > TRAILS_SHOWN ? `The newest ${fmtN(TRAILS_SHOWN)} of ${fmtN(all.length)} trails. ` : "") + "Tap one to follow it from start to finish.";
+    refocusKey(list, key, "mapHead");
+  }
+  function renderPatterns() {
+    const n = state.entries.length;
+    $("patternsEarly").hidden = n >= LEAN_FROM;
+    $("patternsMain").hidden = n < LEAN_FROM;
+    if (n < LEAN_FROM) {
+      $("earlyCount").textContent = fmtN(n) + " of " + fmtN(LEAN_FROM) + " thoughts so far";
+      return;
+    }
+    const counts = stageCounts(state.entries);
+    $("leanText").textContent = leanSentence(counts);
+    renderBars($("leanBars"), counts);
+    $("leanNote").hidden = n >= FIRST_LOOK;
+    const sp = stuckPoint(counts);
+    $("stuckText").textContent = stuckSentence(sp);
+    $("stuckTip").textContent = sp
+      ? "A stuck point isn't bad. It's a place to look. Try opening a thought at " + STAGE_NAMES[STAGES[sp.at]] + " and tapping Move forward."
+      : "It shows up when one stage gets at least twice as many thoughts as the next.";
+    const h = heading(state.entries);
+    $("headText").textContent = h ? headingSentence(h) : "This shows after " + fmtN(HEADING_FROM) + " thoughts. " + fmtN(HEADING_FROM - n) + " to go.";
+    $("headNote").textContent = h ? headingDetail(h) : "";
+    renderMap(counts, sp);
+    renderTrails();
+    const ts = topicSummary(state.entries, state.topics);
+    $("topicText").textContent = topicSentence(ts, n);
+    $("topicList").replaceChildren(...ts.filter((t) => t.count).map((t) => {
+      const li = el("li");
+      li.append(el("b", t.label), el("span", ": " + fmtN(t.count) + ", mostly at " + nameList(t.top.map((x) => STAGE_NAMES[x]))));
+      return li;
+    }));
+    const none = ts.filter((t) => !t.count).map((t) => t.label);
+    $("topicNote").textContent = none.length ? "Nothing yet in " + nameList(none) + "." : "";
+  }
+  function wirePatterns() {
+    $("earlyGo").addEventListener("click", () => { showTab("catch"); $("catchText").focus(); });
+    $("trailList").addEventListener("click", (ev) => {
+      const b = ev.target.closest("button.entry");
+      if (b) openSheet("trail", b.dataset.root, b);
+    });
+  }
+
+  // ---- topic names (More) ----
+  const TOPIC_ERR = {
+    empty: (i) => "Topic " + (i + 1) + " needs a name.",
+    long: (i) => "Topic " + (i + 1) + " is too long. Keep it to " + fmtN(LIMITS.topic) + " characters.",
+    same: (i) => "Topic " + (i + 1) + " has the same name as another one. Give each its own.",
+  };
+  function renderTopicNames() {
+    const box = $("topicNames");
+    box.replaceChildren();
+    state.topics.forEach((t, i) => {
+      const id = "topicName" + i;
+      const row = el("div", null, { class: "trow" });
+      const input = el("input", null, { id, type: "text", autocomplete: "off", "data-topic": t.id });
+      input.maxLength = LIMITS.topic;
+      input.value = t.label;
+      input.addEventListener("input", () => { showErr("topicErr", ""); input.removeAttribute("aria-invalid"); });
+      row.append(el("label", "Topic " + (i + 1), { for: id, class: "field-label" }), input);
+      box.append(row);
+    });
+  }
+  function wireTopicNames() {
+    $("topicSave").addEventListener("click", () => {
+      const inputs = [...$("topicNames").querySelectorAll("input")];
+      for (const i of inputs) { i.removeAttribute("aria-invalid"); i.removeAttribute("aria-describedby"); }
+      const r = cleanTopicNames(inputs.map((i) => i.value));
+      if (r.error) {
+        showErr("topicErr", TOPIC_ERR[r.error](r.index));
+        inputs[r.index].setAttribute("aria-invalid", "true");
+        inputs[r.index].setAttribute("aria-describedby", "topicErr");
+        inputs[r.index].focus();
+        return;
+      }
+      showErr("topicErr", "");
+      const ids = inputs.map((i) => i.dataset.topic);
+      if (!ids.some((id, k) => topicLabel(id) !== r.labels[k])) { toast("No changes to save."); return; }
+      if (!canChange()) return;
+      commit((s) => { ids.forEach((id, k) => { const t = s.topics.find((x) => x.id === id); if (t) t.label = r.labels[k]; }); })
+        .then(() => { renderTopicNames(); toast(saveFailed ? "Topic names changed. This device couldn't save them." : "Topic names saved."); });
+    });
+  }
+
+  function renderAll() {
+    renderStatus();
+    renderWarn();
+    renderCatch();
+    renderRecent();
+    renderPatterns();
+    checkSheet();
+  }
 
   // ---- tabs ----
   function showTab(id, focus) {
@@ -338,6 +1521,8 @@ button:focus-visible, a:focus-visible { outline: 2px solid var(--accent); outlin
       btn.tabIndex = on ? 0 : -1;
       $("view-" + t).hidden = !on;
     }
+    if (!$("undoBar").hidden && !$("view-" + id).contains(document.activeElement)) hideUndo();   // a new tab means moving on; don't cover it
+    if (id === "more") renderTopicNames();   // fresh names each visit
     if (focus) $("tab-" + id).focus();
     window.scrollTo(0, 0);
   }
@@ -442,10 +1627,31 @@ button:focus-visible, a:focus-visible { outline: 2px solid var(--accent); outlin
     wireSize();
     wireInstall();
     renderAbout();
+    wireWarn();
+    wireUndo();
+    wireCatch();
+    wireRecent();
+    wireSheet();
+    wirePatterns();
+    wireTopicNames();
+    renderExample();
     showTab("catch");
+    renderAll();
   } catch (err) {
     $("startError").hidden = false;
   }
+  // Open the saved thoughts. Nothing can change until they're on screen, so nothing gets saved over them.
+  queue(async () => {
+    try { await loadSaved(); } catch (err) { hold = "unread"; }
+    loaded = true;
+    try {
+      renderAll();
+      renderTopicNames();
+      wireSync();
+    } catch (err) {
+      $("startError").hidden = false;
+    }
+  });
 
   // Offline support: the page works without internet once it's been opened
   if ("serviceWorker" in navigator) {

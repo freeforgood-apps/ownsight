@@ -21,7 +21,7 @@ A free web app that helps each person understand their own unique psychology and
 - **This repo is the latest source.** Claude's workspace is temporary, so anything worth keeping gets saved here.
 - **Web address (never changes):** https://freeforgood-apps.github.io/ownsight/ (GitHub Pages, from main, / (root)).
 - **Names that never change,** or people lose their data:
-  - Saved data: IndexedDB database `ownsight-v1`. Small settings: localStorage keys starting `ownsight-v1-`.
+  - Saved data: IndexedDB database `ownsight-v1` (version 1, store `data`, record `state` = `{ rev, json }`; data that couldn't be read is set aside as `damaged-<rev>`). Small settings: localStorage keys starting `ownsight-v1-`. Windows tell each other about saves on the BroadcastChannel `ownsight-v1`.
   - Offline cache names start with `ownsight-`.
   - Backup codes start with `OWNSIGHT1:`. Backup files are named `ownsight-backup-YYYY-MM-DD.json`.
 - **Shared address:** freeforgood-apps.github.io is shared with Till Payday, Study Coach and the other free apps. Every key, database and cache name keeps the `ownsight-` prefix, and nothing ever clears storage it doesn't own.
@@ -77,7 +77,7 @@ Every entry has a kind, a stage and a topic.
 }
 ```
 
-Store what people enter and compute everything else (scores, lean, heading, stuck point, track record), so nothing stored can go stale. Every text and list has a limit with a friendly message (to settle in the saving stage).
+Store what people enter and compute everything else (scores, lean, heading, stuck point, track record), so nothing stored can go stale. Every text and list has a limit with a friendly message (settled in stage 2; see Decisions).
 
 ### Stages (one build chat each, each ending verified, saved here and recorded below)
 
@@ -114,15 +114,26 @@ Why some things are the way they are, so nobody "fixes" them by mistake:
 - **`el()` and `parseBackup()` arrive with the code that uses them** (stages 2 and 3), so there's no unused code before then.
 - **The app always opens on Catch,** with no remembered tab, since catching is the main job.
 - **Unfinished tabs say plainly what's coming** instead of being hidden, so the layout is settled early.
+- **Saved thoughts can be moved forward, edited or deleted, each with Undo** (Nov 14, 2026, the owner's choice). Delete uses Undo rather than a two-tap confirm, since it's one small thing and Undo brings it back whole. Undo sits in a bar above the tabs for 10 seconds (longer while it has focus) and goes away on a tab switch, so it never covers another tab.
+- **Topics can be renamed, not added, for now** (Nov 14, 2026, the owner's choice). It keeps the second tap to 5 choices. Adding topics can come later.
+- **Before 5 thoughts, Patterns shows the count so far plus a clearly marked made-up example** (Nov 14, 2026, the owner's choice).
+- **How the patterns are worked out** (Nov 14, 2026). Lean: the stage with the most thoughts; ties say "split between". Stuck point: the step with the biggest pile-up before the next stage (most left waiting), needing at least 2 waiting and at least twice as many as the next stage; a tie goes to the bigger ratio. Check → Notice doesn't count, since that's the loop starting over. Heading: the newest thoughts (up to 20) against the same number before them, stages counted 1 to 6, with half a stage or more counting as a move, worked out in whole numbers so rounding can't tip it. These are plain counts, never labels.
+- **Move forward keeps the topic and offers the next stage, but any stage can be picked.** Check moves on to Notice. Each stage asks its own question ("How and when will you do it?").
+- **Limits** (Nov 14, 2026): 1,000 characters a thought, 10,000 thoughts, 20 characters a topic name, each with a friendly message.
+- **One saved record with a save count** (Nov 14, 2026). A save only goes ahead when the stored count still matches the window's, and it's read back to check. If another window saved first, the newest wins and the window says its last change wasn't saved. Windows also tell each other about saves and re-check when shown, so that's rare. Nothing can change until the saved data has loaded.
+- **Damaged data is set aside from stage 2** (`damaged-<rev>`), with a two-tap Start fresh, because saving started here and must never write over what it can't read. Bringing a copy back comes with the safety net (stage 3). Data saved by a newer version is shown but never saved over.
+- **Reading saved data keeps every field,** so an older version or a tab left open never trims what a later stage added. It skips `__proto__`, `constructor` and `prototype`.
+- **Text size stays a small localStorage setting** (`ownsight-v1-size`), not in the saved data, so it applies before the thoughts load. `settings` in the saved data is kept for later (the app lock).
+- **The logic tests stay out of the repo for now,** to keep Till Payday's flat layout. The self-test (stage 3) carries them, along with the Done when lines code can test.
 - **The name Ownsight was checked on Nov 14, 2026.** Thinkprint, Groundwork, Open Mind, Mind Reader, MindLoop and Thought Compass were ruled out by existing trademarks or apps in this space. A pending "Ownersight" application covers property and building software and was judged low risk.
 
 ## Where things stand (Nov 14, 2026)
 
-- **0.1.0 (stage 1, the shell) is built and saved here.** Live on Pages, not shared yet. It installs, works offline, follows light and dark, keeps clear of the notch and Home bar (safe areas), shows its version on the More tab, and has the privacy lock on. Five bottom tabs; the first four say what's coming. More has text size, Home Screen steps and About.
-- **Tested** (CHANGELOG.md has the details): 49 headless Chrome checks passed, 4 of 4 planted bugs were caught, the accessibility checker was clean on all 5 tabs at 4 sizes in light and dark, and contrast was computed for 56 color pairs (all pass).
-- **Owner's iPhone check passed (Nov 14, 2026):** added to the Home Screen from Safari, it opened full screen with its own icon, nothing hid under the notch or the Home bar, and in Airplane Mode it still opened with version 0.1.0 shown on More.
+- **0.2.0 (stage 2, the thinking loop) is built and saved here.** Live on Pages, not shared yet. Catch saves a thought in two taps, with Undo. Recent opens each thought to move it forward, edit or delete it. Patterns shows the lean, stuck point, heading (from 10), the Map with trails, and topics, from 5 thoughts, with a marked example before that. Topics can be renamed on More. Saving is on the device, read back after every save, safe across two windows, and never writes over damaged or newer data.
+- **Tested** (CHANGELOG.md has the details): 19 logic tests and 107 headless Chrome checks passed, 8 of 8 planted bugs were caught, the accessibility checker was clean on every tab, sheet and state at 4 sizes in light and dark, contrast passed for 42 color pairs, and the security release check found nothing.
+- **Stage 1's iPhone check passed (Nov 14, 2026).** Stage 2's iPhone check (Next up) is still to do.
 - **Not tested yet:** the Android Install button (headless Chrome never offers one), and VoiceOver on a real iPhone (at the first release).
-- **Tags:** `v0.1.0`, added by the "Tag new versions" workflow (its run passed).
+- **Tags:** `v0.1.0`, and `v0.2.0` from the "Tag new versions" workflow once this version reaches main.
 - The repo is on the monthly app security sweep's list.
 
 ## Next up
@@ -131,5 +142,4 @@ Why some things are the way they are, so nobody "fixes" them by mistake:
   1. Type a thought, tag it in 2 taps, and see it saved.
   2. After 5 thoughts, the Patterns tab says which way you lean and shows the numbers.
   3. Close the app, reopen it, and the thoughts are still there.
-- **Stage 2: thinking loop.** Bring in the toolkit's `el()` for every entry shown on screen, and the IndexedDB database `ownsight-v1` with each save read back.
-- **Stage 3: safety net.** The self-test checks that the app opens offline with its version shown (stage 1's Done when line that code can test).
+- **Stage 3: safety net.** Automatic copies, backup file and code, two-tap restore (including bringing back a `damaged-<rev>` copy), backup reminders, optional app lock, the full About, the self-test and the first release (1.0). The self-test checks that the app opens offline with its version shown (stage 1's Done when line), carries stage 2's logic checks (lean, stuck point, heading, trails, limits, reading saved data) and its three Done when lines, and uses its own database name, never `ownsight-v1`. Once the self-test can open the sheets with made-up thoughts, the seed-page step in how-to-update.md retires. Before building, draft its Done when lines.
