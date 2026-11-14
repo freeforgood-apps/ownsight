@@ -135,7 +135,7 @@ Why some things are the way they are, so nobody "fixes" them by mistake:
 - **Tested** (CHANGELOG.md has the details): 20 logic tests and 124 headless Chrome checks passed, 10 of 10 planted bugs were caught across 0.2.0 and 0.3.0, the accessibility checker was clean on every tab, sheet and state at 4 sizes in light and dark, contrast passed for 42 color pairs, and the security scans found nothing.
 - **Stage 1's iPhone check passed (Nov 14, 2026).** The iPhone check for 0.2.0 and 0.3.0 (Next up) is still to do.
 - **Not tested yet:** the Android Install button (headless Chrome never offers one), and VoiceOver on a real iPhone (at the first release).
-- **Tags:** `v0.1.0` and `v0.2.0`, both added by the "Tag new versions" workflow (its runs passed), and `v0.3.0` from the same workflow once this version reaches main.
+- **Tags:** `v0.1.0`, `v0.2.0` and `v0.3.0`, all added by the "Tag new versions" workflow (its runs passed). GitHub Pages deployed 0.3.0.
 - The repo is on the monthly app security sweep's list.
 
 ## Next up
