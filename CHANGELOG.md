@@ -2,6 +2,12 @@
 
 What changed in each version, newest first, and how it was tested.
 
+## 0.3.0 (Nov 14, 2026)
+- **Show me one:** when Patterns finds a stuck point, a button under it opens the oldest thought still waiting at that stage (one you haven't moved forward yet), ready to move forward. Tap it again after moving one forward, and the next one opens.
+- **Pick a topic above Recent** to see only that topic's thoughts. **All** shows everything again. Catching a thought in another topic switches back to All, so you always see what you just saved. Ownsight always opens showing All.
+- Fixed: after deleting a thought, focus could land on a heading instead of going back where you were.
+- Tested: 20 logic tests passed (`node --test`), including the new pick for Show me one (oldest still waiting, then the oldest there if all have moved forward). 124 browser checks passed in headless Chrome, twice in a row: everything from 0.2.0 plus the two new Done when steps, focus going back to Show me one after moving forward or deleting, Undo from there, the filter read out, focus staying on the filter, an empty topic, catching in another topic or the same one, reopening on All, and the filter fitting at 320 × 568 with extra large text in dark. 2 of 2 new planted bugs were caught (Show me one ignoring thoughts already moved forward, and the filter not filtering). The accessibility checker found nothing on Catch with the filter, a picked filter, Patterns with Show me one and the sheet it opens, plus a fresh start, at 4 sizes in light and dark. Security scan of the changes: nothing personal, no debug code, no `innerHTML`, no outside requests. Not yet: the owner's check on a real iPhone, and VoiceOver.
+
 ## 0.2.0 (Nov 14, 2026)
 - The thinking loop (stage 2). Still an early test version, not shared yet.
 - **Catch a thought in two taps:** write it, tap where it sits in the loop (each stage has a short hint), then tap a topic. That second tap saves it, and **Undo** puts the words back in the box if a tap went wrong.

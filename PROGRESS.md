@@ -125,21 +125,25 @@ Why some things are the way they are, so nobody "fixes" them by mistake:
 - **Reading saved data keeps every field,** so an older version or a tab left open never trims what a later stage added. It skips `__proto__`, `constructor` and `prototype`.
 - **Text size stays a small localStorage setting** (`ownsight-v1-size`), not in the saved data, so it applies before the thoughts load. `settings` in the saved data is kept for later (the app lock).
 - **The logic tests stay out of the repo for now,** to keep Till Payday's flat layout. The self-test (stage 3) carries them, along with the Done when lines code can test.
+- **Show me one opens the oldest thought still waiting at the stuck point** (Nov 14, 2026, the owner's choice): one nothing has moved forward from yet, or the oldest there if all have. It opens the thought itself, not straight to Move forward, so it can be read first.
+- **The topic filter on Recent isn't saved** (Nov 14, 2026). Ownsight always opens on All, and catching a thought in another topic switches back to All, so a new thought never seems to vanish.
 - **The name Ownsight was checked on Nov 14, 2026.** Thinkprint, Groundwork, Open Mind, Mind Reader, MindLoop and Thought Compass were ruled out by existing trademarks or apps in this space. A pending "Ownersight" application covers property and building software and was judged low risk.
 
 ## Where things stand (Nov 14, 2026)
 
-- **0.2.0 (stage 2, the thinking loop) is built and saved here.** Live on Pages, not shared yet. Catch saves a thought in two taps, with Undo. Recent opens each thought to move it forward, edit or delete it. Patterns shows the lean, stuck point, heading (from 10), the Map with trails, and topics, from 5 thoughts, with a marked example before that. Topics can be renamed on More. Saving is on the device, read back after every save, safe across two windows, and never writes over damaged or newer data.
-- **Tested** (CHANGELOG.md has the details): 19 logic tests and 107 headless Chrome checks passed, 8 of 8 planted bugs were caught, the accessibility checker was clean on every tab, sheet and state at 4 sizes in light and dark, contrast passed for 42 color pairs, and the security release check found nothing.
-- **Stage 1's iPhone check passed (Nov 14, 2026).** Stage 2's iPhone check (Next up) is still to do.
+- **0.3.0 is built and saved here.** Live on Pages, not shared yet. On top of stage 2 (0.2.0, the thinking loop), it adds Show me one under the stuck point and a topic filter above Recent. Catch saves a thought in two taps, with Undo. Recent opens each thought to move it forward, edit or delete it. Patterns shows the lean, stuck point, heading (from 10), the Map with trails, and topics, from 5 thoughts, with a marked example before that. Topics can be renamed on More. Saving is on the device, read back after every save, safe across two windows, and never writes over damaged or newer data.
+- **Tested** (CHANGELOG.md has the details): 20 logic tests and 124 headless Chrome checks passed, 10 of 10 planted bugs were caught across 0.2.0 and 0.3.0, the accessibility checker was clean on every tab, sheet and state at 4 sizes in light and dark, contrast passed for 42 color pairs, and the security scans found nothing.
+- **Stage 1's iPhone check passed (Nov 14, 2026).** The iPhone check for 0.2.0 and 0.3.0 (Next up) is still to do.
 - **Not tested yet:** the Android Install button (headless Chrome never offers one), and VoiceOver on a real iPhone (at the first release).
-- **Tags:** `v0.1.0` and `v0.2.0`, both added by the "Tag new versions" workflow (its runs passed). GitHub Pages deployed 0.2.0.
+- **Tags:** `v0.1.0` and `v0.2.0`, both added by the "Tag new versions" workflow (its runs passed), and `v0.3.0` from the same workflow once this version reaches main.
 - The repo is on the monthly app security sweep's list.
 
 ## Next up
 
-- **Stage 2: the owner's quick check on an iPhone, on the live site:**
+- **The owner's quick check on an iPhone, on the live site** (stage 2, then 0.3.0's two ideas):
   1. Type a thought, tag it in 2 taps, and see it saved.
   2. After 5 thoughts, the Patterns tab says which way you lean and shows the numbers.
   3. Close the app, reopen it, and the thoughts are still there.
-- **Stage 3: safety net.** Automatic copies, backup file and code, two-tap restore (including bringing back a `damaged-<rev>` copy), backup reminders, optional app lock, the full About, the self-test and the first release (1.0). The self-test checks that the app opens offline with its version shown (stage 1's Done when line), carries stage 2's logic checks (lean, stuck point, heading, trails, limits, reading saved data) and its three Done when lines, and uses its own database name, never `ownsight-v1`. Once the self-test can open the sheets with made-up thoughts, the seed-page step in how-to-update.md retires. Before building, draft its Done when lines.
+  4. On Patterns, tap Show me one under the stuck point, and a thought waiting at that stage opens.
+  5. On Catch, tap a topic above Recent, and only that topic's thoughts show.
+- **Stage 3: safety net.** Automatic copies, backup file and code, two-tap restore (including bringing back a `damaged-<rev>` copy), backup reminders, optional app lock, the full About, the self-test and the first release (1.0). The self-test checks that the app opens offline with its version shown (stage 1's Done when line), carries the logic checks from 0.2.0 and 0.3.0 (lean, stuck point, Show me one, heading, trails, limits, reading saved data) and the Done when lines above that code can test, and uses its own database name, never `ownsight-v1`. Once the self-test can open the sheets with made-up thoughts, the seed-page step in how-to-update.md retires. Before building, draft its Done when lines.

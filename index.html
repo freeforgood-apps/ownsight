@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-9DdLb6k/0zDa1jiBLnS3NTmCGA9PASOKAQ/aADZLl38='; style-src 'unsafe-inline'; img-src 'self' data: blob:; font-src data:; connect-src 'none'; manifest-src 'self'; worker-src 'self'; form-action 'none'; base-uri 'none'; object-src 'none'; frame-src 'none'; media-src 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-L2dYrIb7/5WrWUCfxJpDARp6Se6fB34asabXc0XVEiI='; style-src 'unsafe-inline'; img-src 'self' data: blob:; font-src data:; connect-src 'none'; manifest-src 'self'; worker-src 'self'; form-action 'none'; base-uri 'none'; object-src 'none'; frame-src 'none'; media-src 'none'">
 <meta name="referrer" content="no-referrer">
 <meta name="description" content="A free, private app to understand how you think and what it means for your life. Everything stays on your device.">
 <meta name="theme-color" content="#F7F2EF" media="(prefers-color-scheme: light)">
@@ -157,6 +157,7 @@ textarea:focus-visible, input[type="text"]:focus-visible { outline: 2px solid va
 .emeta { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 8px; font-size: 0.875rem; color: var(--muted); }
 .chip { background: var(--accent-soft); color: var(--accent); font-weight: 700; font-size: 0.8125rem; padding: 2px 10px; border-radius: 999px; }
 .path { display: flex; flex-wrap: wrap; align-items: center; gap: 4px; }
+.filterbox { display: flex; flex-direction: column; gap: 6px; }
 .path .arr { color: var(--muted); font-size: 0.875rem; }
 .sheet-text { white-space: pre-wrap; overflow-wrap: anywhere; font-size: 1.0625rem; }
 
@@ -322,6 +323,10 @@ button:focus-visible, a:focus-visible { outline: 2px solid var(--accent); outlin
       </div>
     </div>
     <h3 id="recentHead" tabindex="-1">Recent</h3>
+    <div class="filterbox" id="recentFilterBox" hidden>
+      <p class="foot" id="recentFilterLabel">Show thoughts from:</p>
+      <div class="topics" id="recentFilter" role="group" aria-labelledby="recentFilterLabel"></div>
+    </div>
     <p class="foot" id="recentEmpty">Opening your thoughts…</p>
     <ul class="entries" id="recentList"></ul>
     <div class="actions"><button class="ghost" type="button" id="recentMore" hidden>Show more</button></div>
@@ -354,9 +359,10 @@ button:focus-visible, a:focus-visible { outline: 2px solid var(--accent); outlin
         <p class="foot" id="leanNote" hidden>A first look. It gets clearer as you add more.</p>
       </div>
       <div class="card">
-        <h3>Stuck point</h3>
+        <h3 id="stuckHead" tabindex="-1">Stuck point</h3>
         <p id="stuckText"></p>
         <p class="foot" id="stuckTip"></p>
+        <div class="actions" id="stuckActs" hidden><button class="ghost" type="button" id="stuckGo">Show me one</button></div>
       </div>
       <div class="card">
         <h3>Which way you're heading</h3>
@@ -489,7 +495,7 @@ button:focus-visible, a:focus-visible { outline: 2px solid var(--accent); outlin
 "use strict";
 (() => {
   // ---- settings ----
-  const APP_VERSION = "0.2.0";
+  const APP_VERSION = "0.3.0";
   const PREFIX = "ownsight-v1";   // every name this app saves starts with this, so it never touches another app's data
   const FEEDBACK_EMAIL = "freeforgood-apps+ownsight@proton.me";
   const TABS = ["catch", "patterns", "decide", "me", "more"];
@@ -677,6 +683,13 @@ button:focus-visible, a:focus-visible { outline: 2px solid var(--accent); outlin
     return out.sort((a, b) => Date.parse(b.last.at) - Date.parse(a.last.at));
   }
   function trailOf(entries, id) { return trails(entries).find((t) => t.steps.some((s) => s.id === id)) || null; }
+  // For "Show me one": the oldest thought at a stage that hasn't moved forward yet (nothing links back to it).
+  // If every one there has moved forward, the oldest there. null when the stage is empty.
+  function waitingAt(entries, stage) {
+    const moved = new Set(entries.filter((e) => e.from && e.from !== e.id).map((e) => e.from));
+    const here = byTime(entries.filter((e) => e.stage === stage));
+    return here.find((e) => !moved.has(e.id)) || here[0] || null;
+  }
   // ==== logic: end ====
 
   const $ = (id) => document.getElementById(id);
@@ -1072,6 +1085,7 @@ button:focus-visible, a:focus-visible { outline: 2px solid var(--accent); outlin
     if (state.entries.length >= LIMITS.entries) { showErr("catchErr", CATCH_ERR.full); return; }
     if (!canChange()) return;
     const entry = { id: newId(), kind: "thought", text: r.text, stage: catchStage, topic: topicId, at: new Date().toISOString(), from: null };
+    if (recentTopic && recentTopic !== topicId) recentTopic = "";   // so the new thought shows in Recent
     commit((s) => { s.entries.push(entry); });
     area.value = "";
     renderCount(area, $("catchCount"));
@@ -1127,14 +1141,28 @@ button:focus-visible, a:focus-visible { outline: 2px solid var(--accent); outlin
     li.append(b);
     return li;
   }
+  // The topic filter above Recent: "" shows all. Not saved, so Ownsight always opens showing everything.
+  let recentTopic = "";
+  function renderFilter() {
+    const box = $("recentFilter");
+    const a = document.activeElement;
+    const focused = box.contains(a) ? a.dataset.topic : null;
+    if (recentTopic && !state.topics.some((t) => t.id === recentTopic)) recentTopic = "";
+    box.replaceChildren(...[{ id: "", label: "All" }, ...state.topics].map((t) =>
+      el("button", t.label, { type: "button", class: "topic", "data-topic": t.id, "aria-pressed": t.id === recentTopic ? "true" : "false" })));
+    $("recentFilterBox").hidden = state.entries.length === 0;
+    if (focused != null) for (const b of box.querySelectorAll("button")) if (b.dataset.topic === focused) b.focus({ preventScroll: true });
+  }
   function renderRecent() {
+    renderFilter();
     const list = $("recentList");
     const key = focusedKey(list);
-    const all = byTime(state.entries).reverse();
+    const all = byTime(recentTopic ? state.entries.filter((e) => e.topic === recentTopic) : state.entries).reverse();
     list.replaceChildren(...all.slice(0, recentShown).map(entryItem));
     $("recentEmpty").hidden = all.length > 0;
     $("recentEmpty").textContent = !loaded ? "Opening your thoughts…" : hold && hold !== "newer"
       ? "Your saved thoughts can't be shown right now."
+      : recentTopic && state.entries.length ? "No thoughts in " + topicLabel(recentTopic) + " yet."
       : "Nothing here yet. Your thoughts will show up here.";
     const left = all.length - recentShown;
     $("recentMore").hidden = left <= 0;
@@ -1142,6 +1170,15 @@ button:focus-visible, a:focus-visible { outline: 2px solid var(--accent); outlin
     refocusKey(list, key, "recentHead");
   }
   function wireRecent() {
+    $("recentFilter").addEventListener("click", (ev) => {
+      const b = ev.target.closest("button[data-topic]");
+      if (!b) return;
+      recentTopic = b.dataset.topic;
+      recentShown = RECENT_PAGE;
+      renderRecent();
+      const n = recentTopic ? state.entries.filter((e) => e.topic === recentTopic).length : state.entries.length;
+      announce("Showing " + (recentTopic ? topicLabel(recentTopic) : "all topics") + ": " + fmtN(n) + (n === 1 ? " thought." : " thoughts."));
+    });
     $("recentList").addEventListener("click", (ev) => {
       const b = ev.target.closest("button.entry");
       if (b) openSheet("view", b.dataset.id, b);
@@ -1156,12 +1193,14 @@ button:focus-visible, a:focus-visible { outline: 2px solid var(--accent); outlin
   }
 
   // ---- the sheet: open a thought, move it forward, edit or delete it, follow a trail ----
-  const sheet = { mode: "", id: "", opener: null, list: "", key: "", after: "" };
-  function openSheet(mode, id, opener) {
+  const sheet = { mode: "", id: "", opener: null, list: "", key: "", after: "", home: "" };
+  // home: where focus goes when the opener is gone (a heading on the same tab)
+  function openSheet(mode, id, opener, home) {
     sheet.opener = opener || document.activeElement;
     const ul = sheet.opener && sheet.opener.closest ? sheet.opener.closest("ul") : null;
     sheet.list = ul ? ul.id : "";
     sheet.key = sheet.opener && sheet.opener.dataset ? sheet.opener.dataset.id || sheet.opener.dataset.root || "" : "";
+    sheet.home = home || (sheet.list === "trailList" ? "mapHead" : "recentHead");
     renderSheet(mode, id);
     const dlg = $("sheet");
     if (!dlg.open) { if (dlg.showModal) dlg.showModal(); else dlg.setAttribute("open", ""); }
@@ -1170,9 +1209,12 @@ button:focus-visible, a:focus-visible { outline: 2px solid var(--accent); outlin
   function closeSheet() {
     const dlg = $("sheet");
     if (!dlg.open) return;
+    // Marked closed right away, so a change saved just after (like Delete) doesn't treat it as still open
+    sheet.mode = "";
+    sheet.id = "";
     if (dlg.close) dlg.close(); else { dlg.removeAttribute("open"); dlg.dispatchEvent(new Event("close")); }
   }
-  function homeHead() { return sheet.list === "trailList" ? "mapHead" : "recentHead"; }
+  function homeHead() { return sheet.home || "recentHead"; }
   function refocus() {
     if (sheet.after) { const a = sheet.after; sheet.after = ""; focusSafe(a); return; }
     const o = sheet.opener;
@@ -1233,13 +1275,14 @@ button:focus-visible, a:focus-visible { outline: 2px solid var(--accent); outlin
     if (!canChange()) return;
     const id = e.id;
     let index = -1;
-    sheet.after = homeHead();   // the thought's own button goes away
+    const home = homeHead();
+    if (sheet.list) sheet.after = home;   // a thought's own button goes away; a fixed one (Show me one) stays
     closeSheet();
     commit((s) => { index = removeEntry(s, id); });
     showUndo("Thought deleted.", () => {
       commit((s) => { if (index >= 0 && !s.entries.some((x) => x.id === id)) s.entries.splice(Math.min(index, s.entries.length), 0, e); });
       announce("Undone. The thought is back.");
-      focusSafe("recentHead");
+      focusSafe(home);
     });
   }
   function formBits(label, value) {
@@ -1269,12 +1312,13 @@ button:focus-visible, a:focus-visible { outline: 2px solid var(--accent); outlin
         if (state.entries.length >= LIMITS.entries) { f.fail(FORM_ERR.full); return; }
         if (!canChange()) return;
         const entry = { id: newId(), kind: "thought", text: r.text, stage: to, topic: e.topic, at: new Date().toISOString(), from: e.id };
+        const home = homeHead();
         closeSheet();
         commit((s) => { s.entries.push(entry); });
         showUndo("Moved forward to " + STAGE_NAMES[to] + ".", () => {
           commit((s) => { removeEntry(s, entry.id); });
           announce("Undone.");
-          focusSafe(homeHead());
+          focusSafe(home);
         });
       }),
       button("Cancel", "ghost", () => switchSheet("view", e.id)),
@@ -1303,12 +1347,13 @@ button:focus-visible, a:focus-visible { outline: 2px solid var(--accent); outlin
         if (r.text === e.text && st === e.stage && tp === e.topic) { closeSheet(); toast("Nothing changed."); return; }
         if (!canChange()) return;
         const id = e.id, before = { text: e.text, stage: e.stage, topic: e.topic }, after = { text: r.text, stage: st, topic: tp };
+        const home = homeHead();
         closeSheet();
         commit((s) => setFields(s, id, after));
         showUndo("Changes saved.", () => {
           commit((s) => setFields(s, id, before));
           announce("Undone. The thought is back as it was.");
-          focusSafe(homeHead());
+          focusSafe(home);
         });
       }),
       button("Cancel", "ghost", () => switchSheet("view", e.id)),
@@ -1437,8 +1482,9 @@ button:focus-visible, a:focus-visible { outline: 2px solid var(--accent); outlin
     const sp = stuckPoint(counts);
     $("stuckText").textContent = stuckSentence(sp);
     $("stuckTip").textContent = sp
-      ? "A stuck point isn't bad. It's a place to look. Try opening a thought at " + STAGE_NAMES[STAGES[sp.at]] + " and tapping Move forward."
+      ? "A stuck point isn't bad. It's a place to look. Show me one opens a thought still waiting at " + STAGE_NAMES[STAGES[sp.at]] + ", ready to move forward."
       : "It shows up when one stage gets at least twice as many thoughts as the next.";
+    $("stuckActs").hidden = !sp;
     const h = heading(state.entries);
     $("headText").textContent = h ? headingSentence(h) : "This shows after " + fmtN(HEADING_FROM) + " thoughts. " + fmtN(HEADING_FROM - n) + " to go.";
     $("headNote").textContent = h ? headingDetail(h) : "";
@@ -1453,9 +1499,18 @@ button:focus-visible, a:focus-visible { outline: 2px solid var(--accent); outlin
     }));
     const none = ts.filter((t) => !t.count).map((t) => t.label);
     $("topicNote").textContent = none.length ? "Nothing yet in " + nameList(none) + "." : "";
+    // If what had focus just got hidden (like Show me one when nothing's stuck anymore), land on the stuck point heading
+    const a = document.activeElement;
+    if (a && $("view-patterns").contains(a) && a.closest("[hidden]")) focusSafe("stuckHead");
   }
   function wirePatterns() {
     $("earlyGo").addEventListener("click", () => { showTab("catch"); $("catchText").focus(); });
+    // Show me one: opens the oldest thought still waiting at the stuck point
+    $("stuckGo").addEventListener("click", () => {
+      const sp = stuckPoint(stageCounts(state.entries));
+      const e = sp ? waitingAt(state.entries, STAGES[sp.at]) : null;
+      if (e) openSheet("view", e.id, $("stuckGo"), "stuckHead");
+    });
     $("trailList").addEventListener("click", (ev) => {
       const b = ev.target.closest("button.entry");
       if (b) openSheet("trail", b.dataset.root, b);

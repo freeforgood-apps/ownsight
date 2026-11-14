@@ -26,8 +26,11 @@ This repo (freeforgood-apps/ownsight) is the source. `index.html` is the whole a
    node /tmp/toolkit/a11y-check.mjs --click '#recentList button.entry' --click '#sheetBody .actions button:nth-child(3)' http://127.0.0.1:8771/seed.html
    node /tmp/toolkit/a11y-check.mjs 'http://127.0.0.1:8771/seed.html?kind=damaged'
    node /tmp/toolkit/a11y-check.mjs --click '#catchStages button[data-stage="idea"]' http://127.0.0.1:8771/seed.html
+   node /tmp/toolkit/a11y-check.mjs http://127.0.0.1:8771/seed.html
+   node /tmp/toolkit/a11y-check.mjs --click '#recentFilter button[data-topic="money"]' http://127.0.0.1:8771/seed.html
+   node /tmp/toolkit/a11y-check.mjs --click '#tab-patterns' --click '#stuckGo' http://127.0.0.1:8771/seed.html
    ```
-   Those are: full Patterns, the thought sheet, Move forward, Edit, the trail sheet, the Undo bar (after Delete), the warning card and the Catch error. Check once that each really opened (its heading or card is on the page) before trusting a clean result.
+   Those are: full Patterns, the thought sheet, Move forward, Edit, the trail sheet, the Undo bar (after Delete), the warning card, the Catch error, Catch with the topic filter, a picked filter, and the sheet Show me one opens. The made-up thoughts need a stuck point (more at one stage than twice the next) so Show me one appears. Check once that each really opened (its heading or card is on the page) before trusting a clean result.
 5. Save the changed files to this repo, plus a new CHANGELOG.md entry, an update to PROGRESS.md, and README.md (a new headless Chrome row at the top of **Tested on**, and any feature or wording change). All files sit flat at the top of the repo, except the tag workflow. They can also be uploaded by hand from a phone.
 6. The "Tag new versions" workflow adds the `vX.Y.Z` tag when a new version reaches main. Check its run passed.
 7. Open the live site on a real iPhone and do the Done when check in PROGRESS.md.
