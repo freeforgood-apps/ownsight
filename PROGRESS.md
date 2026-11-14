@@ -121,7 +121,7 @@ Why some things are the way they are, so nobody "fixes" them by mistake:
 - **0.1.0 (stage 1, the shell) is built and saved here.** Not shared yet, and Pages isn't turned on yet. It installs, works offline, follows light and dark, keeps clear of the notch and Home bar (safe areas), shows its version on the More tab, and has the privacy lock on. Five bottom tabs; the first four say what's coming. More has text size, Home Screen steps and About.
 - **Tested** (CHANGELOG.md has the details): 49 headless Chrome checks passed, 4 of 4 planted bugs were caught, the accessibility checker was clean on all 5 tabs at 4 sizes in light and dark, and contrast was computed for 56 color pairs (all pass).
 - **Not tested yet:** a real iPhone (safe areas, Add to Home Screen, offline), and the Android Install button (headless Chrome never offers one).
-- **Tags:** the "Tag new versions" workflow should add `v0.1.0` after this push; check its run.
+- **Tags:** `v0.1.0`, added by the "Tag new versions" workflow (its run passed).
 - The repo is on the monthly app security sweep's list.
 
 ## Next up
