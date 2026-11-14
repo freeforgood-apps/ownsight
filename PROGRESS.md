@@ -19,7 +19,7 @@ A free web app that helps each person understand their own unique psychology and
 ## Where it lives
 
 - **This repo is the latest source.** Claude's workspace is temporary, so anything worth keeping gets saved here.
-- **Web address (never changes):** https://freeforgood-apps.github.io/ownsight/ (Pages gets turned on by the owner; see Next up).
+- **Web address (never changes):** https://freeforgood-apps.github.io/ownsight/ (GitHub Pages, from main, / (root)).
 - **Names that never change,** or people lose their data:
   - Saved data: IndexedDB database `ownsight-v1`. Small settings: localStorage keys starting `ownsight-v1-`.
   - Offline cache names start with `ownsight-`.
@@ -118,20 +118,18 @@ Why some things are the way they are, so nobody "fixes" them by mistake:
 
 ## Where things stand (Nov 14, 2026)
 
-- **0.1.0 (stage 1, the shell) is built and saved here.** Not shared yet, and Pages isn't turned on yet. It installs, works offline, follows light and dark, keeps clear of the notch and Home bar (safe areas), shows its version on the More tab, and has the privacy lock on. Five bottom tabs; the first four say what's coming. More has text size, Home Screen steps and About.
+- **0.1.0 (stage 1, the shell) is built and saved here.** Live on Pages, not shared yet. It installs, works offline, follows light and dark, keeps clear of the notch and Home bar (safe areas), shows its version on the More tab, and has the privacy lock on. Five bottom tabs; the first four say what's coming. More has text size, Home Screen steps and About.
 - **Tested** (CHANGELOG.md has the details): 49 headless Chrome checks passed, 4 of 4 planted bugs were caught, the accessibility checker was clean on all 5 tabs at 4 sizes in light and dark, and contrast was computed for 56 color pairs (all pass).
-- **Not tested yet:** a real iPhone (safe areas, Add to Home Screen, offline), and the Android Install button (headless Chrome never offers one).
+- **Owner's iPhone check passed (Nov 14, 2026):** added to the Home Screen from Safari, it opened full screen with its own icon, nothing hid under the notch or the Home bar, and in Airplane Mode it still opened with version 0.1.0 shown on More.
+- **Not tested yet:** the Android Install button (headless Chrome never offers one), and VoiceOver on a real iPhone (at the first release).
 - **Tags:** `v0.1.0`, added by the "Tag new versions" workflow (its run passed).
 - The repo is on the monthly app security sweep's list.
 
 ## Next up
 
-- After this push: turn on Pages (Settings → Pages → Deploy from a branch, main, / (root) → Save, then Enforce HTTPS).
-- **Stage 1: the owner's quick check on an iPhone, on the live site:**
-  1. Add Ownsight to your Home Screen from Safari, and it opens full screen with its own icon.
-  2. Turn on Airplane Mode, open it, and it still opens, with the version shown on the More tab.
 - **Stage 2: the owner's quick check on an iPhone, on the live site:**
   1. Type a thought, tag it in 2 taps, and see it saved.
   2. After 5 thoughts, the Patterns tab says which way you lean and shows the numbers.
   3. Close the app, reopen it, and the thoughts are still there.
 - **Stage 2: thinking loop.** Bring in the toolkit's `el()` for every entry shown on screen, and the IndexedDB database `ownsight-v1` with each save read back.
+- **Stage 3: safety net.** The self-test checks that the app opens offline with its version shown (stage 1's Done when line that code can test).
