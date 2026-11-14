@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-vLQPyiScdzQndJUm72Hl1LTgjJBgP2z8aEdMBcYJWB0='; style-src 'unsafe-inline'; img-src 'self' data: blob:; font-src data:; connect-src 'none'; manifest-src 'self'; worker-src 'self'; form-action 'none'; base-uri 'none'; object-src 'none'; frame-src 'none'; media-src 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-2o5wd4VS9ugdgyTe70ssiSWnP94JWrvOhcjgq2FjR/A='; style-src 'unsafe-inline'; img-src 'self' data: blob:; font-src data:; connect-src 'none'; manifest-src 'self'; worker-src 'self'; form-action 'none'; base-uri 'none'; object-src 'none'; frame-src 'none'; media-src 'none'">
 <meta name="referrer" content="no-referrer">
 <meta name="description" content="A free, private app to understand how you think and what it means for your life. Everything stays on your device.">
 <meta name="theme-color" content="#F7F2EF" media="(prefers-color-scheme: light)">
@@ -127,12 +127,13 @@ h4 { font-family: var(--f-body); font-weight: 700; font-size: 1rem; margin: 0; }
 /* Text boxes */
 .field-label { font-weight: 700; }
 .field-label.big { font-size: 1.0625rem; }
-textarea, input[type="text"] {
+textarea, input[type="text"], input[type="password"] {
   width: 100%; font: 1rem/1.4 var(--f-body); font-size: max(16px, 1rem); color: var(--ink);
   background: var(--field); border: 1px solid var(--edge); border-radius: 12px; padding: 10px 12px; min-height: 44px;
 }
 textarea { min-height: 5.5rem; resize: vertical; }
-textarea:focus-visible, input[type="text"]:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+textarea:focus-visible, input[type="text"]:focus-visible, input[type="password"]:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+.field { display: flex; flex-direction: column; gap: 6px; }
 
 /* The three stages on Write (one tap saves), and the second choice under Next step */
 .ask { font-weight: 700; margin-top: 4px; }
@@ -295,6 +296,27 @@ button:focus-visible, a:focus-visible { outline: 2px solid var(--accent); outlin
 }
 .toast:empty { display: none; }
 
+/* Backups (More tab, and the reminder on Write) */
+.statusbtn {
+  appearance: none; border: 0; background: transparent; min-height: 44px; padding: 4px 0; cursor: pointer;
+  font: 700 0.8125rem/1.25 var(--f-body); color: var(--muted); text-align: right;
+  text-decoration: underline dotted; text-underline-offset: 3px;
+}
+.statusbtn.warn { color: var(--accent); background: transparent; padding: 4px 0; }
+.statusbtn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 6px; }
+.check { display: flex; align-items: flex-start; gap: 12px; min-height: 44px; padding: 6px 0; cursor: pointer; font-weight: 700; }
+.check input { flex: none; width: 22px; height: 22px; margin: 1px 0 0; accent-color: var(--accent); }
+.check small { display: block; margin-top: 2px; font-weight: 400; font-size: 0.875rem; color: var(--muted); }
+.filepick { position: absolute; width: 1px; height: 1px; opacity: 0; overflow: hidden; pointer-events: none; }
+label.ghost { display: inline-flex; align-items: center; justify-content: center; text-align: center; }
+label.ghost:has(+ .filepick:focus-visible) { outline: 2px solid var(--accent); outline-offset: 2px; }
+.card ul.copylist { list-style: none; padding: 0; gap: 8px; }
+.copylist .ghost { width: 100%; text-align: left; }
+.copylist small { display: block; margin-top: 2px; font-weight: 400; font-size: 0.875rem; color: var(--muted); }
+.ghost.danger { border-color: var(--accent); }
+.primary.confirm, .ghost.confirm { background: var(--ink); color: var(--bg); border-color: var(--ink); }
+.ghost.confirm small { color: var(--bg); }
+
 @media (prefers-reduced-motion: reduce) {
   * { transition: none !important; animation: none !important; scroll-behavior: auto !important; }
 }
@@ -308,6 +330,7 @@ button:focus-visible, a:focus-visible { outline: 2px solid var(--accent); outlin
       Ownsight
     </h1>
     <p class="status" id="status"></p>
+    <button class="status statusbtn" type="button" id="backupStatus" hidden></button>
   </div>
 </header>
 
@@ -320,7 +343,10 @@ button:focus-visible, a:focus-visible { outline: 2px solid var(--accent); outlin
     <div class="card" id="warnCard" role="alert" hidden>
       <h3 id="warnHead"></h3>
       <p id="warnText"></p>
-      <div class="actions"><button class="primary" type="button" id="warnBtn" hidden></button></div>
+      <div class="actions">
+        <button class="primary" type="button" id="warnBtn" hidden></button>
+        <button class="ghost" type="button" id="warnBtn2" hidden></button>
+      </div>
     </div>
     <div class="card">
       <label class="field-label big" for="writeText">What's on your mind?</label>
@@ -330,6 +356,14 @@ button:focus-visible, a:focus-visible { outline: 2px solid var(--accent); outlin
       <p class="ask" id="writeAsk">Where is it at? Tap one to save it.</p>
       <div class="stages" id="writeStages" role="group" aria-labelledby="writeAsk"></div>
       <p class="foot" id="writeIntro" hidden>Each thought moves along as you make a plan and do it. Open one from Recent to move it along. See shows your own counts after 5 thoughts.</p>
+    </div>
+    <div class="card" id="backupCard" hidden>
+      <h3 id="bkCardHead"></h3>
+      <p id="bkCardText"></p>
+      <div class="actions">
+        <button class="primary" type="button" id="bkCardGo">Back up now</button>
+        <button class="ghost" type="button" id="bkCardLater">Later</button>
+      </div>
     </div>
     <div class="card" id="installCard" hidden>
       <h3>Add Ownsight to your Home Screen</h3>
@@ -343,7 +377,7 @@ button:focus-visible, a:focus-visible { outline: 2px solid var(--accent); outlin
     <p class="foot" id="recentEmpty">Opening your thoughts…</p>
     <ul class="entries" id="recentList"></ul>
     <div class="actions"><button class="ghost" type="button" id="recentMore" hidden>Show more</button></div>
-    <p class="foot">Your thoughts save on this device automatically. Nothing is sent anywhere.</p>
+    <p class="foot">Your thoughts save on this device automatically. Nothing is sent anywhere. Back up now and then, and you can always get them back.</p>
   </section>
 
   <section class="panel" id="view-see" role="tabpanel" aria-labelledby="tab-see" hidden>
@@ -393,6 +427,55 @@ button:focus-visible, a:focus-visible { outline: 2px solid var(--accent); outlin
 
   <section class="panel" id="view-more" role="tabpanel" aria-labelledby="tab-more" hidden>
     <h2 class="sr-only" id="moreHead" tabindex="-1">More</h2>
+    <div class="card" id="backupBox">
+      <h3 id="backupHead" tabindex="-1">Back up your thoughts</h3>
+      <p>Your thoughts are only on this device. A backup is a small file or code with all of them in it, so you can bring them back on any phone.</p>
+      <p class="foot" id="bkState">No backup yet</p>
+      <label class="check" id="bkProtectRow"><input type="checkbox" id="bkProtect"><span>Protect it with a password<small>Optional. Nobody can open a protected backup without the password, and that includes you: a forgotten password can't be recovered.</small></span></label>
+      <div class="field" id="bkPassBox" hidden>
+        <label class="field-label" for="bkPass">Backup password</label>
+        <p class="foot" id="bkPassHint">At least 6 characters.</p>
+        <input type="password" id="bkPass" autocomplete="new-password" aria-describedby="bkPassHint">
+      </div>
+      <p class="alert" id="bkErr" role="alert" hidden></p>
+      <div class="actions">
+        <button class="primary" type="button" id="bkFile">Save a backup file</button>
+        <button class="ghost" type="button" id="bkCopy">Copy backup code</button>
+      </div>
+      <p class="foot">Keep it somewhere safe, like the Files app, Notes, or an email to yourself.</p>
+      <div class="field" id="bkCodeBox" hidden>
+        <label class="field-label" for="bkCode">Your backup code</label>
+        <p class="foot" id="bkCodeHint">Select all of it and copy it, then paste it somewhere safe.</p>
+        <textarea id="bkCode" rows="3" readonly aria-describedby="bkCodeHint"></textarea>
+      </div>
+    </div>
+    <div class="card" id="restoreBox">
+      <h3 id="restoreHead" tabindex="-1">Restore a backup</h3>
+      <p class="foot">On a new phone, or if your thoughts ever go missing. This replaces the thoughts that are here now.</p>
+      <div class="actions">
+        <label class="ghost filebtn" for="bkPick">Choose a backup file</label>
+        <input type="file" id="bkPick" class="filepick" accept=".json,.txt,application/json,text/plain">
+      </div>
+      <p class="foot" id="bkPicked" hidden></p>
+      <div class="field">
+        <label class="field-label" for="bkPaste">Or paste a backup code</label>
+        <textarea id="bkPaste" rows="3" autocomplete="off" autocapitalize="off" spellcheck="false"></textarea>
+      </div>
+      <div class="field" id="bkRestorePassBox" hidden>
+        <label class="field-label" for="bkRestorePass">This backup's password</label>
+        <p class="foot" id="bkRestorePassHint">This backup has a password. Type it, then tap Restore.</p>
+        <input type="password" id="bkRestorePass" autocomplete="current-password" aria-describedby="bkRestorePassHint">
+      </div>
+      <p class="alert" id="restoreErr" role="alert" hidden></p>
+      <p class="foot" id="bkRestoreNote" hidden></p>
+      <div class="actions"><button class="primary" type="button" id="bkRestore">Restore</button></div>
+    </div>
+    <div class="card" id="copiesBox" hidden>
+      <h3 id="copiesHead" tabindex="-1">Automatic copies</h3>
+      <p class="foot">Ownsight keeps a copy of your thoughts from each of the last 3 days you opened it, right here on this device. Handy if you delete something by mistake. They aren't a backup, since they're only on this device.</p>
+      <p class="alert" id="copiesErr" role="alert" hidden></p>
+      <ul class="copylist" id="copyList"></ul>
+    </div>
     <div class="card">
       <fieldset class="seg">
         <legend>Text size</legend>
@@ -410,22 +493,36 @@ button:focus-visible, a:focus-visible { outline: 2px solid var(--accent); outlin
         <li><b>Android:</b> open it in Chrome, tap the ⋮ menu, then Add to Home screen or Install app.</li>
         <li><b>Computer:</b> in Chrome or Edge, use the install button in the address bar.</li>
       </ul>
-      <p class="foot">It then opens like an app and works without internet. On iPhone and iPad, the Home Screen app keeps its own entries, apart from Safari, so it's best to add it before you start. Safari can also clear saved data from websites you haven't opened in 7 days. The Home Screen app avoids that.</p>
+      <p class="foot">It then opens like an app and works without internet. On iPhone and iPad, the Home Screen app keeps its own thoughts, apart from Safari. If you've already started in Safari, copy a backup code first, then restore it in the Home Screen app. Safari can also clear saved data from websites you haven't opened in 7 days. The Home Screen app avoids that.</p>
     </div>
     <div class="card">
       <h3>About Ownsight</h3>
       <p id="aboutVersion">A free app to understand how you think</p>
+      <h4>Your privacy</h4>
       <ul>
         <li>No accounts, ads, analytics, tracking or AI.</li>
-        <li>What you add stays on this device. Nothing is sent anywhere.</li>
+        <li>Your thoughts save only on this device. Nothing is sent anywhere.</li>
         <li>A privacy lock built into this page stops it from sending anything over the internet, even if it tried.</li>
         <li>Everything Ownsight needs, fonts included, comes from this one site.</li>
         <li>Like any website, GitHub Pages, which hosts these files, may log visitors' IP addresses for security. It never sees what you write.</li>
+        <li>A backup goes only where you put it, like the Files app or Notes. The automatic copies stay on this device.</li>
+      </ul>
+      <h4>Keep your thoughts safe</h4>
+      <ul>
+        <li><b>Back up now and then.</b> Back up your thoughts is at the top of More, and Ownsight reminds you when it's been a while.</li>
+        <li><b>Bring your thoughts along.</b> On iPhone and iPad, the Home Screen app doesn't see what you saved in Safari. Before you add it, copy a backup code, then restore it in the Home Screen app.</li>
+        <li><b>Safari can clear saved data</b> from websites you haven't opened in 7 days. The Home Screen app keeps its own, so it avoids that.</li>
       </ul>
       <p>It's a mirror, not a diagnosis. Ownsight isn't therapy, a clinical test or professional advice.</p>
       <p>A one-person volunteer project, built with help from AI.</p>
+      <p>Ownsight's code is public, so anyone can check what it does: <a href="https://github.com/freeforgood-apps/ownsight" rel="noopener noreferrer">github.com/freeforgood-apps/ownsight</a></p>
       <p>Official link: <a href="https://freeforgood-apps.github.io/ownsight/">freeforgood-apps.github.io/ownsight</a></p>
       <p>Ideas or problems? <a id="aboutMail" href="mailto:freeforgood-apps+ownsight@proton.me">freeforgood-apps+ownsight@proton.me</a></p>
+    </div>
+    <div class="card">
+      <h3>Delete everything</h3>
+      <p class="foot">Removes every thought, automatic copy and setting Ownsight saved on this device. Back up first if you might want them again.</p>
+      <div class="actions"><button class="ghost danger" type="button" id="wipeAll">Delete everything from this device</button></div>
     </div>
   </section>
 
@@ -478,7 +575,7 @@ button:focus-visible, a:focus-visible { outline: 2px solid var(--accent); outlin
 "use strict";
 (() => {
   // ---- settings ----
-  const APP_VERSION = "0.4.0";
+  const APP_VERSION = "0.5.0";
   const PREFIX = "ownsight-v1";   // every name this app saves starts with this, so it never touches another app's data
   const FEEDBACK_EMAIL = "freeforgood-apps+ownsight@proton.me";
   const TABS = ["write", "see", "more"];
@@ -494,7 +591,8 @@ button:focus-visible, a:focus-visible { outline: 2px solid var(--accent); outlin
 
   // ==== logic: start ====
   // Plain functions: values in, values out. No screen and no storage, so they can be tested on their own.
-  const DATA_V = 2;   // data version. Data saved by a newer version is shown but never saved over.
+  const DATA_V = 3;   // data version. Data saved by a newer version is shown but never saved over.
+  const APP_ID = "Ownsight";   // how a backup says which app it's from
   const STAGES = ["thinking", "planning", "did"];
   const STAGE_NAMES = { thinking: "Thinking about it", planning: "Planning it", did: "Did it" };
   const FEELS = ["lifts", "weighs"];
@@ -503,6 +601,11 @@ button:focus-visible, a:focus-visible { outline: 2px solid var(--accent); outlin
   const FIRST_LOOK = 20;   // under this many, See says it's only a first look
   const WEEK_DAYS = 7;     // Your week looks back over the last 7 days, today included
   const LOOK_BACK_DAYS = [5, 6, 0];   // ...on Friday, Saturday and Sunday (Date.getDay), in the person's own time
+  // Backup reminders, timed like Till Payday's: the first after 5 changes with no backup, due after 7 days and 10 changes
+  // (or after 30 changes), overdue after 30 days. Later waits 3 days, or 1 day when overdue.
+  const NUDGE = { first: 5, dueDays: 7, dueChanges: 10, manyChanges: 30, overdueDays: 30, later: 3, laterOverdue: 1 };
+  const MAX_CHANGES = 9999;   // the change count stops here
+  const BK_PREFIX = "OWNSIGHT1:";   // backup codes start with this
   // Data version 1 (0.2.0 and 0.3.0) had six stages. Each moves up to one of the three.
   const V1_STAGES = { notice: "thinking", question: "thinking", idea: "thinking", plan: "planning", do: "did", check: "did" };
   const V1_KINDS = ["thought", "decision", "moment"];
@@ -516,7 +619,8 @@ button:focus-visible, a:focus-visible { outline: 2px solid var(--accent); outlin
   const NUM = new Intl.NumberFormat();
   const fmtN = (n) => NUM.format(n);
 
-  function defaults() { return { v: DATA_V, thoughts: [], settings: {} }; }
+  function noBackup() { return { at: "", n: 0, snooze: "" }; }
+  function defaults() { return { v: DATA_V, thoughts: [], settings: {}, backup: noBackup() }; }
   function isObj(x) { return x !== null && typeof x === "object" && !Array.isArray(x); }
   function validAt(s) { return typeof s === "string" && s.length <= 64 && Number.isFinite(Date.parse(s)); }
   // A fresh copy of an object's fields, except names that could change how objects behave (and any in drop)
@@ -547,26 +651,39 @@ button:focus-visible, a:focus-visible { outline: 2px solid var(--accent); outlin
     if (state.settings === undefined) state.settings = {};
     return state;
   }
+  // The backup record (version 3): the day of the last backup, changes since then, and the day a reminder waits until
+  function okBackup(b) {
+    return isObj(b) && (b.at === "" || isDay(b.at)) && Number.isInteger(b.n) && b.n >= 0 && b.n <= MAX_CHANGES &&
+      (b.snooze === "" || isDay(b.snooze));
+  }
   // Checks saved data: { ok: true, state, newer } or { ok: false }.
   // Every field is kept, including ones later versions add, so an older version never trims them.
   function readSaved(obj) {
     if (!isObj(obj) || !Number.isInteger(obj.v) || obj.v < 1) return { ok: false };
+    let state, newer = false;
     if (obj.v === 1) {
       const shapeOK = Array.isArray(obj.entries) && obj.entries.every(okEntryV1) &&
         (obj.topics === undefined || (Array.isArray(obj.topics) && obj.topics.every(okTopicV1)));
-      return shapeOK ? { ok: true, newer: false, state: fromV1(obj) } : { ok: false };
+      if (!shapeOK) return { ok: false };
+      state = fromV1(obj);
+    } else {
+      newer = obj.v > DATA_V;   // shown if it can be, never saved over
+      const shapeOK = Array.isArray(obj.thoughts) && obj.thoughts.every(okThought);
+      if (!shapeOK) return newer ? { ok: true, newer, state: defaults() } : { ok: false };
+      state = copyFields(obj);
+      state.thoughts = obj.thoughts.map((t) => {
+        const c = copyFields(t);
+        if (c.feel === undefined) c.feel = null;
+        c.steps = Array.isArray(t.steps) ? t.steps.map((s) => copyFields(s)) : [];
+        return c;
+      });
+      if (state.settings === undefined) state.settings = {};
+      if (!newer) state.v = DATA_V;
     }
-    const newer = obj.v > DATA_V;   // shown if it can be, never saved over
-    const shapeOK = Array.isArray(obj.thoughts) && obj.thoughts.every(okThought);
-    if (!shapeOK) return newer ? { ok: true, newer, state: defaults() } : { ok: false };
-    const state = copyFields(obj);
-    state.thoughts = obj.thoughts.map((t) => {
-      const c = copyFields(t);
-      if (c.feel === undefined) c.feel = null;
-      c.steps = Array.isArray(t.steps) ? t.steps.map((s) => copyFields(s)) : [];
-      return c;
-    });
-    if (state.settings === undefined) state.settings = {};
+    // Version 3 adds the backup record. Older data starts with no backup, counting each thought as a change, so the first
+    // reminder comes soon. A record that doesn't check out starts over: it's only for reminders, so it never hides any thoughts.
+    state.backup = okBackup(obj.backup) ? copyFields(obj.backup)
+      : { at: "", n: obj.v < 3 ? Math.min(state.thoughts.length, MAX_CHANGES) : 0, snooze: "" };
     return { ok: true, newer, state };
   }
   // What someone typed: { text } when it's fine, or { error: "empty" | "long" }
@@ -663,6 +780,118 @@ button:focus-visible, a:focus-visible { outline: 2px solid var(--accent); outlin
     const s = (t.steps || []).filter((x) => x.stage === t.stage);
     return s.length ? s[s.length - 1].at : t.at;
   }
+
+  // Days as "YYYY-MM-DD" in the person's own time, counted as whole days (dayNum's scale)
+  function pad2(n) { return (n < 10 ? "0" : "") + n; }
+  function dayKey(d) { return d.getFullYear() + "-" + pad2(d.getMonth() + 1) + "-" + pad2(d.getDate()); }
+  // The day number of a "YYYY-MM-DD" day, or NaN when it isn't a real day
+  function keyNum(key) {
+    const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(typeof key === "string" ? key : "");
+    if (!m) return NaN;
+    const y = +m[1], mo = +m[2], d = +m[3], t = Date.UTC(y, mo - 1, d), back = new Date(t);
+    return back.getUTCFullYear() === y && back.getUTCMonth() === mo - 1 && back.getUTCDate() === d ? t / 86400000 : NaN;
+  }
+  function isDay(s) { return Number.isFinite(keyNum(s)); }
+  function dayAfter(now, days) { return dayKey(new Date(now.getFullYear(), now.getMonth(), now.getDate() + days)); }
+  // "today", "yesterday", "9 days ago"
+  function agoText(days) { return days <= 0 ? "today" : days === 1 ? "yesterday" : fmtN(days) + " days ago"; }
+  // Whether to remind about a backup, or null when there are no thoughts to back up.
+  // level: "first" (never backed up), "due", "overdue" or "" (not yet). card: show the reminder now (not put off with Later).
+  function backupNeed(state, now) {
+    if (!state.thoughts.length) return null;
+    const b = state.backup, today = dayNum(now), last = b.at ? keyNum(b.at) : NaN;
+    const days = Number.isFinite(last) ? Math.max(0, today - last) : null;
+    let level = "";
+    if (days === null) level = b.n >= NUDGE.first ? "first" : "";
+    else if (days >= NUDGE.overdueDays && b.n >= 1) level = "overdue";
+    else if ((days >= NUDGE.dueDays && b.n >= NUDGE.dueChanges) || b.n >= NUDGE.manyChanges) level = "due";
+    const snoozed = !!b.snooze && keyNum(b.snooze) > today;
+    return { level, days, n: b.n, snoozed, card: !!level && !snoozed };
+  }
+
+  // ---- checking a backup: the toolkit's parseBackup(), copied as it is ----
+  // Returns clean data or throws an error with a friendly message. Nothing is saved here.
+  const MAX_BACKUP_CHARS = 5_000_000;
+  const BLOCKED_KEYS = new Set(['__proto__', 'constructor', 'prototype']);
+
+  function parseBackup(text, { appId, dataVersion, isValid }) {
+    if (typeof text !== 'string' || !text.trim()) throw new Error('That backup is empty.');
+    if (text.length > MAX_BACKUP_CHARS) throw new Error('That backup is too big to be from this app.');
+    let data;
+    try {
+      data = JSON.parse(text, (key, value) => (BLOCKED_KEYS.has(key) ? undefined : value));
+    } catch {
+      throw new Error("That doesn't look like a backup from this app.");
+    }
+    if (!data || typeof data !== 'object' || data.app !== appId) {
+      throw new Error('That backup is from a different app.');
+    }
+    if (!Number.isInteger(data.v) || data.v < 1) throw new Error('That backup looks damaged, so nothing was changed.');
+    if (data.v > dataVersion) throw new Error('This backup is from a newer version. Update the app, then try again.');
+    if (!isValid(data)) throw new Error('That backup looks damaged, so nothing was changed.');
+    return data; // still run migrations, then show the confirm step before saving
+  }
+
+  // ---- backups: every thought as JSON, in a file or as a code ----
+  // Base64 of the text's UTF-8 bytes, and back. fromB64 throws on anything that isn't base64 of UTF-8 text.
+  function toB64(str) {
+    const bytes = new TextEncoder().encode(str);
+    let bin = "";
+    for (let i = 0; i < bytes.length; i += 0x8000) bin += String.fromCharCode.apply(null, bytes.subarray(i, i + 0x8000));
+    return btoa(bin);
+  }
+  function fromB64(b64) { return new TextDecoder("utf-8", { fatal: true }).decode(Uint8Array.from(atob(b64), (c) => c.charCodeAt(0))); }
+  // The backup itself. The reminder record stays out: it's about this device, not the thoughts.
+  function backupJSON(state, now) {
+    return JSON.stringify({ app: APP_ID, v: state.v, saved: dayKey(now), thoughts: state.thoughts, settings: state.settings });
+  }
+  function backupCode(json) { return BK_PREFIX + toB64(json); }
+  // What was picked or pasted, as backup JSON: a file's text as it is, or a code decoded. Throws a friendly message.
+  const CODE_MAX = 4 * MAX_BACKUP_CHARS + 64;   // the longest a code for the biggest backup can be
+  function backupText(raw) {
+    let t = String(raw == null ? "" : raw).trim();
+    if (!t) throw new Error("Choose a backup file or paste a backup code first.");
+    if (t.length > CODE_MAX) throw new Error("That's too big to be an Ownsight backup. Check you pasted only the backup code.");
+    if (t.charAt(0) === "{") return t;
+    t = t.replace(/\s+/g, "");
+    if (t.slice(0, BK_PREFIX.length).toUpperCase() === BK_PREFIX) t = t.slice(BK_PREFIX.length);
+    try { return fromB64(t); } catch (e) { throw new Error("That doesn't look like an Ownsight backup. Check you copied all of it."); }
+  }
+  // The thoughts in a checked backup as fresh objects, known fields only, or null when it doesn't check out.
+  // It accepts exactly what saved data accepts (readSaved), so anything Ownsight can hold, it can bring back from a backup.
+  // Older backups move up the same way saved data does. parseBackup()'s size cap keeps the whole thing in bounds.
+  function fromBackup(d) {
+    if (!isObj(d) || d.encrypted !== undefined) return null;
+    const r = readSaved(copyFields(d, ["app", "saved"]));
+    if (!r.ok || r.newer) return null;
+    return {
+      v: DATA_V,
+      thoughts: r.state.thoughts.map((t) => ({
+        id: t.id, text: t.text, stage: t.stage, feel: t.feel || null, at: t.at,
+        steps: t.steps.map((s) => ({ stage: s.stage, at: s.at, note: s.note == null ? null : s.note })),
+      })),
+      settings: {},
+      backup: noBackup(),
+    };
+  }
+  // A backup with a password holds { v, iter, salt, iv, data }; it's opened later, with the password
+  function okEncrypted(e) {
+    return isObj(e) && Number.isInteger(e.v) && e.v >= 1 && Number.isInteger(e.iter) &&
+      ["salt", "iv", "data"].every((k) => typeof e[k] === "string" && e[k].length > 0);
+  }
+  // parseBackup()'s checks: the outside of a backup (thoughts, or a password-protected inside), and the inside
+  function okBackupFile(d) { return d.encrypted !== undefined ? okEncrypted(d.encrypted) && d.thoughts === undefined : fromBackup(d) !== null; }
+  function okInside(d) { return fromBackup(d) !== null; }
+
+  // ---- automatic copies: { day, at, n (how many thoughts), json (the saved data as it was) } ----
+  function okCopy(c) { return isObj(c) && isDay(c.day) && validAt(c.at) && Number.isInteger(c.n) && c.n >= 0 && typeof c.json === "string"; }
+  function readCopies(rec) { return Array.isArray(rec) ? rec.filter(okCopy) : []; }
+  // The copies with today's added at the front, keeping the newest few. null when there's nothing to add:
+  // there's a copy from today already, or the newest copy holds exactly this.
+  function withCopy(copies, copy, kept) {
+    if (copies.some((c) => c.day === copy.day) || (copies[0] && copies[0].json === copy.json)) return null;
+    return [copy, ...copies].slice(0, kept);
+  }
   // ==== logic: end ====
 
   const $ = (id) => document.getElementById(id);
@@ -725,9 +954,14 @@ button:focus-visible, a:focus-visible { outline: 2px solid var(--accent); outlin
   // IndexedDB database "ownsight-v1", store "data". Record "state" holds the saved data as JSON plus a save count (rev).
   // A save only goes ahead when the stored count still matches this window's, so an older window can't save over newer thoughts.
   // Every save is read back to check it. Data that can't be read is set aside (record "damaged-<rev>") and never saved over.
+  // Record "copies" holds the automatic copies: the saved data from each of the last 3 days Ownsight was used.
   const STORE = "data";
   const STATE_KEY = "state";
+  const COPIES_KEY = "copies";
+  const COPIES_KEPT = 3;
   let db = null;
+  let savedJson = null;      // the saved data as this window last read or wrote it (what today's copy is made from)
+  let copiedDay = "";        // the day this window last made sure there's a copy
   let state = defaults();
   let rev = 0;               // save count of the data on screen
   let loaded = false;
@@ -788,6 +1022,7 @@ button:focus-visible, a:focus-visible { outline: 2px solid var(--accent); outlin
   // Puts a saved record on screen. Version 1 data moves up to version 2 here, and is saved that way with the next change.
   async function useRecord(rec) {
     rev = revOf(rec);
+    savedJson = isObj(rec) && typeof rec.json === "string" ? rec.json : null;
     if (rec === undefined) { state = defaults(); hold = ""; return; }
     let read = { ok: false };
     if (isObj(rec) && typeof rec.json === "string") {
@@ -807,6 +1042,29 @@ button:focus-visible, a:focus-visible { outline: 2px solid var(--accent); outlin
     let rec;
     try { rec = await dbGet(STATE_KEY); } catch (e) { hold = "unread"; return; }
     await useRecord(rec);
+    if (!hold) await keepDailyCopy();
+  }
+  // Today's automatic copy: the saved data as it was before today's first change (or when Ownsight was first opened today).
+  // Copies are extra: if one can't be made, saving still goes ahead.
+  async function keepDailyCopy() {
+    const day = dayKey(new Date());
+    if (copiedDay === day || !db || savedJson === null) return;
+    let n = 0;
+    try { const r = readSaved(JSON.parse(savedJson)); if (r.ok && !r.newer) n = r.state.thoughts.length; } catch (e) { n = 0; }
+    if (!n) return;   // nothing worth a copy yet
+    try {
+      const next = withCopy(readCopies(await dbGet(COPIES_KEY)), { day, at: new Date().toISOString(), n, json: savedJson }, COPIES_KEPT);
+      if (next) await dbPut(COPIES_KEY, next);
+      copiedDay = day;
+    } catch (e) { /* tried again with the next change */ }
+  }
+  function dbClear() {
+    return new Promise((resolve, reject) => {
+      const tx = db.transaction(STORE, "readwrite", { durability: "strict" });
+      tx.objectStore(STORE).clear();
+      tx.oncomplete = () => resolve();
+      tx.onerror = tx.onabort = () => reject(tx.error || new Error("delete failed"));
+    });
   }
   // One job at a time: loading, saving and picking up changes from other windows never overlap
   let chain = Promise.resolve();
@@ -818,11 +1076,14 @@ button:focus-visible, a:focus-visible { outline: 2px solid var(--accent); outlin
     if (revOf(back) !== rev + 1) return "newer";   // another window saved right after this one, on top of it
     if (!isObj(back) || back.json !== json) throw new Error("read back didn't match");
     rev = back.rev;
+    savedJson = json;
     return "ok";
   }
+  // Saves what's on screen. Resolves "ok", "lost" or "newer" (another window saved first), or "" when it couldn't save.
   async function saveNow() {
-    if (hold) { renderStatus(); return; }
+    if (hold) { renderStatus(); return ""; }
     const json = JSON.stringify(state);
+    await keepDailyCopy();
     let result = "";
     for (let tries = 0; tries < 2 && !result; tries++) {
       try { result = await trySave(json); } catch (e) { db = null; }   // a lost connection gets one fresh try
@@ -832,6 +1093,7 @@ button:focus-visible, a:focus-visible { outline: 2px solid var(--accent); outlin
     if (result === "lost" || result === "newer") await reload(result === "lost");
     renderStatus();
     renderWarn();
+    return result;
   }
   // Picks up a save from another window. lost: this window's last change couldn't be saved.
   async function reload(lost) {
@@ -869,11 +1131,13 @@ button:focus-visible, a:focus-visible { outline: 2px solid var(--accent); outlin
     if (hold) { toast(HOLD_TOAST[hold]); return false; }
     return true;
   }
-  // Every change goes in line after anything already happening, then shows and saves
-  function commit(mutate) {
+  // Every change goes in line after anything already happening, then shows and saves.
+  // Changes to thoughts count toward the backup reminder (counts); backing up and Later don't.
+  function commit(mutate, counts = true) {
     return queue(async () => {
       if (hold) { toast(HOLD_TOAST[hold]); return; }
       mutate(state);
+      if (counts) state.backup.n = Math.min(state.backup.n + 1, MAX_CHANGES);
       renderAll();
       await saveNow();
     });
@@ -922,8 +1186,9 @@ button:focus-visible, a:focus-visible { outline: 2px solid var(--accent); outlin
     },
     damaged: {
       head: "Your saved thoughts couldn't be read",
-      text: "Ownsight set them aside on this device and won't save over them. A way to bring back a copy comes in a later update. To keep going now, you can start fresh. What couldn't be read stays set aside.",
-      btn: "Start fresh",
+      text: "Ownsight set them aside on this device and won't save over them. Bring back an automatic copy or a backup from the More tab, or start fresh. What couldn't be read stays set aside.",
+      btn: "Bring back a copy",
+      btn2: "Start fresh",
     },
     newer: {
       head: "Saved by a newer Ownsight",
@@ -947,12 +1212,15 @@ button:focus-visible, a:focus-visible { outline: 2px solid var(--accent); outlin
     $("warnText").textContent = WARN[kind].text;
     $("warnBtn").textContent = WARN[kind].btn;
     $("warnBtn").hidden = !WARN[kind].btn;
+    $("warnBtn2").textContent = WARN[kind].btn2 || "";
+    $("warnBtn2").hidden = !WARN[kind].btn2;
     card.hidden = false;
   }
   function wireWarn() {
     $("warnBtn").addEventListener("click", () => {
       const kind = $("warnCard").dataset.kind;
-      if (kind === "failed") {
+      if (kind === "damaged") goRestore();
+      else if (kind === "failed") {
         queue(saveNow).then(() => toast(saveFailed ? "Still not saving. Free up some space, or leave private browsing." : "Saved on this device."));
       } else if (kind === "unread") {
         queue(async () => {
@@ -960,16 +1228,20 @@ button:focus-visible, a:focus-visible { outline: 2px solid var(--accent); outlin
           renderAll();
           toast(hold === "unread" ? "Still couldn't read it. Close Ownsight and open it again." : "Your thoughts are back.");
         });
-      } else if (kind === "damaged") {
+      }
+    });
+    $("warnBtn2").addEventListener("click", () => {
+      if ($("warnCard").dataset.kind === "damaged") {
         // Two taps, since it leaves the old data behind
         if (!freshArmed) {
-          $("warnBtn").textContent = "Tap again to start fresh";
-          freshArmed = setTimeout(() => { freshArmed = 0; $("warnBtn").textContent = WARN.damaged.btn; }, 5000);
+          $("warnBtn2").textContent = "Tap again to start fresh";
+          announce("Tap again to start fresh.");
+          freshArmed = setTimeout(() => { freshArmed = 0; $("warnBtn2").textContent = WARN.damaged.btn2; }, 5000);
           return;
         }
         clearTimeout(freshArmed);
         freshArmed = 0;
-        $("warnBtn").textContent = WARN.damaged.btn;
+        $("warnBtn2").textContent = WARN.damaged.btn2;
         queue(async () => {
           if (!asideOK) await setAside();
           if (!asideOK) { toast("Ownsight couldn't set your old thoughts aside, so it won't save over them."); return; }
@@ -1411,6 +1683,7 @@ button:focus-visible, a:focus-visible { outline: 2px solid var(--accent); outlin
   function renderAll() {
     renderStatus();
     renderWarn();
+    renderBackupBits();
     renderWrite();
     renderRecent();
     renderSee();
@@ -1420,6 +1693,7 @@ button:focus-visible, a:focus-visible { outline: 2px solid var(--accent); outlin
   // ---- tabs ----
   function showTab(id, focus) {
     const fromBar = $("undoBar").contains(document.activeElement);
+    if (id !== "more" && !$("view-more").hidden) leaveMore();
     for (const t of TABS) {
       const on = t === id;
       const btn = $("tab-" + t);
@@ -1429,6 +1703,7 @@ button:focus-visible, a:focus-visible { outline: 2px solid var(--accent); outlin
     }
     if (!$("undoBar").hidden && !$("view-" + id).contains(document.activeElement)) hideUndo();   // a new tab means moving on; don't cover it
     if (id === "see") renderSee();   // so Your week shows on the right days, even if Ownsight stayed open overnight
+    if (id === "more") renderMore();
     if (focus || fromBar) $("tab-" + id).focus();
     window.scrollTo(0, 0);
   }
@@ -1478,9 +1753,10 @@ button:focus-visible, a:focus-visible { outline: 2px solid var(--accent); outlin
   }
   let installEvt = null;   // Android and computers: the browser's own install prompt, kept for the Install button
   function renderInstall() {
-    $("installCard").hidden = isStandalone() || getSetting("install") === "done";
+    // Hidden while the backup reminder shows, so Write never has two cards asking for something
+    $("installCard").hidden = isStandalone() || getSetting("install") === "done" || bkCardShown;
     $("installText").textContent = isIOS()
-      ? "It opens like an app, works without internet, and keeps Safari from clearing your entries after a week away. The Home Screen app keeps its own entries, so it's best to add it before you start."
+      ? "It opens like an app, works without internet, and keeps Safari from clearing your thoughts after a week away. The Home Screen app keeps its own thoughts, so it's best to add it before you start. Already started? Copy a backup code on More first, then restore it there."
       : "It opens like an app and works without internet.";
   }
   function installDone() {
@@ -1522,6 +1798,459 @@ button:focus-visible, a:focus-visible { outline: 2px solid var(--accent); outlin
     renderInstall();
   }
 
+  // ---- backup reminders: the line beside the name, the card on Write, and the last backup on More ----
+  let bkCardShown = false;
+  function keyDate(key) { return new Date(+key.slice(0, 4), +key.slice(5, 7) - 1, +key.slice(8, 10)); }
+  function fmtDay(key) { const d = keyDate(key); return d.getFullYear() === new Date().getFullYear() ? DAY.format(d) : DAY_YEAR.format(d); }
+  function renderBackupBits() {
+    const now = new Date();
+    const bk = loaded && !hold && !saveFailed ? backupNeed(state, now) : null;
+    const line = $("backupStatus");
+    line.hidden = !bk;
+    $("status").hidden = !!bk;   // in place of "Saved on this device", never in place of a note that saving has stopped
+    if (bk) {
+      line.textContent = bk.days === null ? "No backup yet" : "Backed up " + agoText(bk.days);
+      line.setAttribute("aria-label", line.textContent + ". Open backups.");
+      line.classList.toggle("warn", !!bk.level);
+    }
+    bkCardShown = !!(bk && bk.card);
+    const card = $("backupCard");
+    card.hidden = !bkCardShown;
+    card.dataset.level = bkCardShown ? bk.level : "";
+    if (bkCardShown) {
+      const extra = isIOS() && !isStandalone() ? " Adding Ownsight to your Home Screen helps too, and a backup code is how you bring your thoughts into it." : "";
+      if (bk.level === "first") {
+        $("bkCardHead").textContent = "Save a backup of your thoughts";
+        $("bkCardText").textContent = "Your thoughts are only on this device. If the browser clears its data or you get a new phone, a backup brings them right back. It takes a few seconds." + extra;
+      } else if (bk.level === "due") {
+        $("bkCardHead").textContent = "Time for a quick backup";
+        $("bkCardText").textContent = "You've made " + plural(bk.n, "change", "changes") + " since your last backup " + agoText(bk.days) + "." + extra;
+      } else {
+        $("bkCardHead").textContent = "It's been " + fmtN(bk.days) + " days since your last backup";
+        $("bkCardText").textContent = "Save a fresh one so your recent thoughts are safe too." + extra;
+      }
+    }
+    renderInstall();
+    const at = state.backup && state.backup.at;
+    $("bkState").textContent = isDay(at) ? "Last backup: " + fmtDay(at) + " (" + agoText(dayNum(now) - keyNum(at)) + ")" : "No backup yet";
+  }
+  // To the backup part of More, from the line beside the name or the reminder
+  function goBackup() {
+    showTab("more");
+    $("backupHead").focus();
+    $("backupBox").scrollIntoView({ block: "start" });
+  }
+  // To the copies (or the restore part when there are none), from the note about damaged data
+  async function goRestore() {
+    showTab("more");
+    await renderCopies();
+    const id = $("copiesBox").hidden ? "restore" : "copies";
+    $(id + "Head").focus();
+    $(id + "Box").scrollIntoView({ block: "start" });
+  }
+
+  // ---- passwords: real encryption, done on this device with Web Crypto ----
+  const BK_ITER = 600000;   // PBKDF2-SHA256 rounds: OWASP's number (checked Nov 2026). Stored in each backup, so it can rise later.
+  const canCrypt = () => !!(window.crypto && crypto.subtle && crypto.getRandomValues && window.TextEncoder);
+  function bufB64(buf) {
+    const b = new Uint8Array(buf);
+    let bin = "";
+    for (let i = 0; i < b.length; i += 0x8000) bin += String.fromCharCode.apply(null, b.subarray(i, i + 0x8000));
+    return btoa(bin);
+  }
+  function b64Buf(t) { return Uint8Array.from(atob(t), (c) => c.charCodeAt(0)); }
+  async function passKey(pass, salt, iter, usage) {
+    const base = await crypto.subtle.importKey("raw", new TextEncoder().encode(pass), "PBKDF2", false, ["deriveKey"]);
+    return crypto.subtle.deriveKey({ name: "PBKDF2", salt, iterations: iter, hash: "SHA-256" }, base, { name: "AES-GCM", length: 256 }, false, usage);
+  }
+  // A fresh salt and IV every time. The password itself is never kept.
+  async function lockText(text, pass) {
+    const salt = crypto.getRandomValues(new Uint8Array(16)), iv = crypto.getRandomValues(new Uint8Array(12));
+    const key = await passKey(pass, salt, BK_ITER, ["encrypt"]);
+    const data = await crypto.subtle.encrypt({ name: "AES-GCM", iv }, key, new TextEncoder().encode(text));
+    return { v: 1, kdf: "PBKDF2-SHA256", cipher: "AES-256-GCM", iter: BK_ITER, salt: bufB64(salt), iv: bufB64(iv), data: bufB64(data) };
+  }
+  async function unlockText(enc, pass) {
+    const iter = Math.min(Math.max(enc.iter, 1000), 2000000);   // a made-up backup can't make it run for ages
+    const key = await passKey(pass, b64Buf(enc.salt), iter, ["decrypt"]);
+    const plain = await crypto.subtle.decrypt({ name: "AES-GCM", iv: b64Buf(enc.iv) }, key, b64Buf(enc.data));
+    return new TextDecoder("utf-8", { fatal: true }).decode(plain);
+  }
+
+  // ---- making a backup: a file through the share sheet (or a download), or a code to copy ----
+  const OUTSIDE = { appId: APP_ID, dataVersion: DATA_V, isValid: okBackupFile };
+  const INSIDE = { appId: APP_ID, dataVersion: DATA_V, isValid: okInside };
+  let bkBusy = false;
+  // Why a backup can't be made right now, or ""
+  function backupBlocked() {
+    if (!loaded) return "One moment. Ownsight is still opening.";
+    if (hold === "damaged") return "Your saved thoughts couldn't be read, so there's nothing to back up. Bring back an automatic copy or a backup below.";
+    if (hold) return HOLD_TOAST[hold];
+    if (!state.thoughts.length) return "Write a thought first. There's nothing to back up yet.";
+    if ($("bkProtect").checked && $("bkPass").value.length < 6) return "Type a password of at least 6 characters, or turn the password off.";
+    return "";
+  }
+  function checkBackup() {
+    showErr("bkErr", "");
+    hideCode();
+    const why = backupBlocked();
+    if (!why) return true;
+    showErr("bkErr", why);
+    if ($("bkProtect").checked && $("bkPass").value.length < 6 && loaded && !hold && state.thoughts.length) $("bkPass").focus();
+    return false;
+  }
+  // The backup to hand out: plain, or locked with the password typed above. Throws a friendly message.
+  async function makeBackup(now) {
+    const plain = backupJSON(state, now);
+    if (plain.length > MAX_BACKUP_CHARS) throw new Error("That's more than one backup can hold. Delete some old thoughts, then try again.");
+    // Every backup is checked to restore before it's handed out, so a backup that can't come back never reaches anyone
+    let back = null;
+    try { back = fromBackup(parseBackup(plain, OUTSIDE)); } catch (e) { back = null; }
+    if (!back || back.thoughts.length !== state.thoughts.length) throw new Error("Something went wrong making the backup, so nothing was saved. Please email " + FEEDBACK_EMAIL + ".");
+    if (!$("bkProtect").checked) return plain;
+    let enc;
+    try { enc = await lockText(plain, $("bkPass").value); } catch (e) { throw new Error("This browser couldn't add a password. Try without one."); }
+    const out = JSON.stringify({ app: APP_ID, v: state.v, saved: dayKey(now), encrypted: enc });
+    if (out.length > MAX_BACKUP_CHARS) throw new Error("That's more than one backup with a password can hold. Try without a password, or delete some old thoughts.");
+    return out;
+  }
+  function markBackedUp(msg) {
+    commit((s) => { s.backup = { at: dayKey(new Date()), n: 0, snooze: "" }; }, false);
+    toast(msg);
+  }
+  function hideCode() { $("bkCodeBox").hidden = true; $("bkCode").value = ""; }
+  async function saveFile() {
+    if (bkBusy || !checkBackup()) return;
+    bkBusy = true;
+    try {
+      const now = new Date();
+      let text;
+      try { text = await makeBackup(now); } catch (e) { showErr("bkErr", e.message); return; }
+      const name = "ownsight-backup-" + dayKey(now) + ($("bkProtect").checked ? "-locked" : "") + ".json";
+      try {
+        const file = new File([text], name, { type: "application/json" });
+        if (navigator.canShare && navigator.canShare({ files: [file] })) {
+          await navigator.share({ files: [file], title: "Ownsight backup" });
+          markBackedUp("Backup saved. Keep it somewhere safe.");
+          return;
+        }
+      } catch (e) { if (e && e.name === "AbortError") return; }
+      try {
+        const url = URL.createObjectURL(new Blob([text], { type: "application/json" }));
+        const a = document.createElement("a");   // not el(): this link is the app's own blob: address, made just now
+        a.href = url;
+        a.download = name;
+        document.body.append(a);
+        a.click();
+        a.remove();
+        setTimeout(() => URL.revokeObjectURL(url), 5000);
+        markBackedUp("Backup file saved to your downloads.");
+      } catch (e) { showErr("bkErr", "Couldn't save a file here. Copy the backup code instead."); }
+    } finally { bkBusy = false; }
+  }
+  async function copyCode() {
+    if (bkBusy || !checkBackup()) return;
+    bkBusy = true;
+    try {
+      const making = makeBackup(new Date()).then(backupCode);
+      making.catch(() => {});   // its message is shown below
+      // The clipboard is asked right away, while the tap still counts, and given the code once it's ready
+      let copied = false;
+      try {
+        if (window.ClipboardItem && navigator.clipboard && navigator.clipboard.write) {
+          await navigator.clipboard.write([new ClipboardItem({ "text/plain": making.then((c) => new Blob([c], { type: "text/plain" })) })]);
+          copied = true;
+        } else if (navigator.clipboard && navigator.clipboard.writeText) {
+          await navigator.clipboard.writeText(await making);
+          copied = true;
+        }
+      } catch (e) { copied = false; }
+      let code;
+      try { code = await making; } catch (e) { showErr("bkErr", e.message); return; }
+      if (copied) { markBackedUp("Backup code copied. Paste it in Notes or an email to yourself."); return; }
+      // Copying didn't work here: show the code to copy by hand
+      $("bkCode").value = code;
+      $("bkCodeBox").hidden = false;
+      $("bkCode").focus();
+      $("bkCode").select();
+      markBackedUp("Select the code and copy it, then paste it somewhere safe.");
+    } finally { bkBusy = false; }
+  }
+
+  // ---- restoring a backup (two taps when it would replace thoughts) ----
+  let pickedText = null;           // a backup file's text, once chosen
+  let restoreArmed = 0, armedFor = null;
+  function resetRestore() {
+    clearTimeout(restoreArmed);
+    restoreArmed = 0;
+    armedFor = null;
+    $("bkRestore").textContent = "Restore";
+    $("bkRestore").classList.remove("confirm");
+    $("bkRestoreNote").hidden = true;
+  }
+  function restoreSource() { return pickedText !== null ? pickedText : $("bkPaste").value; }
+  // Shows the password box when the backup chosen or pasted has a password. Returns whether it does.
+  function renderLocked() {
+    let locked = false;
+    try { locked = parseBackup(backupText(restoreSource()), OUTSIDE).encrypted !== undefined; } catch (e) { locked = false; }
+    $("bkRestorePassBox").hidden = !locked;
+    if (!locked) $("bkRestorePass").value = "";
+    return locked;
+  }
+  function clearRestore() {
+    pickedText = null;
+    $("bkPicked").hidden = true;
+    $("bkPaste").value = "";
+    $("bkRestorePass").value = "";
+    $("bkRestorePassBox").hidden = true;
+    showErr("restoreErr", "");
+    resetRestore();
+  }
+  async function onRestore() {
+    if (bkBusy) return;
+    showErr("restoreErr", "");
+    const fail = (msg, focusId) => { resetRestore(); showErr("restoreErr", msg); if (focusId) $(focusId).focus(); };
+    if (!loaded) return fail("One moment. Ownsight is still opening.");
+    if (hold === "newer" || hold === "unread") return fail(HOLD_TOAST[hold]);
+    if (restoreArmed && armedFor) { const next = armedFor; resetRestore(); restoreState(next, "Your thoughts are back from the backup.", "backup"); return; }
+    let data;
+    try { data = parseBackup(backupText(restoreSource()), OUTSIDE); } catch (e) { return fail(e.message, pickedText === null ? "bkPaste" : ""); }
+    const saved = isDay(data.saved) ? data.saved : "";
+    if (data.encrypted !== undefined) {
+      renderLocked();
+      if (data.encrypted.v > 1) return fail("This backup is from a newer version. Update the app, then try again.");
+      const pass = $("bkRestorePass").value;
+      if (!pass) return fail("This backup has a password. Type it first.", "bkRestorePass");
+      if (!canCrypt()) return fail("This browser can't open backups with a password.");
+      bkBusy = true;
+      let inside = null;
+      try { inside = await unlockText(data.encrypted, pass); } catch (e) { inside = null; }
+      bkBusy = false;
+      if (inside === null) return fail("That password doesn't open this backup. Check it and try again.", "bkRestorePass");
+      try { data = parseBackup(inside, INSIDE); } catch (e) { return fail(e.message); }
+    }
+    const next = fromBackup(data);
+    if (!next) return fail("That backup looks damaged, so nothing was changed.");
+    if (!state.thoughts.length || hold) { restoreState(next, "Your thoughts are back from the backup.", "backup"); return; }
+    // First tap: say what's in it, and wait for the second
+    armedFor = next;
+    const note = "This backup has " + plural(next.thoughts.length, "thought", "thoughts") + (saved ? ", saved " + fmtDay(saved) : "") +
+      ". Tap Restore again to replace the " + plural(state.thoughts.length, "thought", "thoughts") + " here.";
+    $("bkRestoreNote").textContent = note;
+    $("bkRestoreNote").hidden = false;
+    $("bkRestore").textContent = "Tap again to replace your thoughts";
+    $("bkRestore").classList.add("confirm");
+    announce(note);
+    restoreArmed = setTimeout(resetRestore, 8000);
+  }
+  // Puts restored thoughts in place of the ones here, with Undo.
+  // kind "backup" counts as backed up today; "copy" doesn't (a copy is only on this device), so reminders keep counting.
+  function restoreState(next, msg, kind) {
+    return queue(async () => {
+      if (hold === "newer" || hold === "unread") { toast(HOLD_TOAST[hold]); return; }
+      if (hold === "damaged") {
+        if (!asideOK) await setAside();
+        if (!asideOK) { toast("Ownsight couldn't set your old thoughts aside, so it won't save over them."); return; }
+      }
+      const before = !hold && state.thoughts.length ? JSON.stringify(state) : null;
+      if (kind === "backup") next.backup = { at: dayKey(new Date()), n: 0, snooze: "" };
+      else if (!hold) next.backup = { at: state.backup.at, n: Math.min(state.backup.n + 1, MAX_CHANGES), snooze: state.backup.snooze };
+      hold = "";
+      state = next;
+      renderAll();
+      if (await saveNow() !== "ok") return;   // the line beside the name and the note on Write say what happened
+      clearRestore();
+      showTab("write");
+      focusSafe("recentHead");
+      if (before) showUndo(msg, () => undoRestore(before));
+      else { toast(msg); announce(msg); }
+    });
+  }
+  function undoRestore(before) {
+    let prev = null;
+    try { const r = readSaved(JSON.parse(before)); if (r.ok && !r.newer) prev = r.state; } catch (e) { prev = null; }
+    if (!prev) return;
+    queue(async () => {
+      if (hold) { toast(HOLD_TOAST[hold]); return; }
+      state = prev;
+      renderAll();
+      if (await saveNow() === "ok") announce("Undone. Your thoughts are as they were.");
+    });
+  }
+
+  // ---- automatic copies on More ----
+  let shownCopies = [], copyArmed = -1, copyTimer = 0;
+  function copyWhen(c) {
+    const ago = dayNum(new Date()) - keyNum(c.day);
+    return ago === 0 ? "Today" : ago === 1 ? "Yesterday" : fmtDay(c.day);
+  }
+  async function renderCopies() {
+    let copies = [];
+    try { if (db) copies = readCopies(await dbGet(COPIES_KEY)); } catch (e) { copies = []; }
+    shownCopies = copies;
+    clearTimeout(copyTimer);
+    copyArmed = -1;
+    $("copiesBox").hidden = !copies.length;
+    $("copyList").replaceChildren(...copies.map((c, i) => {
+      const label = copyWhen(c) + ", when you first opened it";
+      const b = el("button", null, { type: "button", class: "ghost", "data-copy": String(i), "data-label": label });
+      b.append(el("span", label), el("small", TIME.format(new Date(c.at)) + " · " + plural(c.n, "thought", "thoughts")));
+      const li = el("li");
+      li.append(b);
+      return li;
+    }));
+  }
+  // Puts back the label of a copy that was waiting for its second tap
+  function disarmCopy() {
+    clearTimeout(copyTimer);
+    const old = copyArmed >= 0 ? $("copyList").querySelector('button[data-copy="' + copyArmed + '"]') : null;
+    if (old) { old.firstChild.textContent = old.dataset.label; old.classList.remove("confirm"); }
+    copyArmed = -1;
+  }
+  function onCopyTap(e) {
+    const b = e.target.closest("button[data-copy]");
+    if (!b) return;
+    showErr("copiesErr", "");
+    const i = Number(b.dataset.copy), c = shownCopies[i];
+    if (!c) return;
+    if (!loaded) { showErr("copiesErr", "One moment. Ownsight is still opening."); return; }
+    if (hold === "newer" || hold === "unread") { showErr("copiesErr", HOLD_TOAST[hold]); return; }
+    let r = { ok: false };
+    try { r = readSaved(JSON.parse(c.json)); } catch (err) { r = { ok: false }; }
+    if (r.ok && r.newer) { showErr("copiesErr", "This copy is from a newer Ownsight. Close Ownsight and open it again while online to update, then bring it back."); return; }
+    if (!r.ok) { showErr("copiesErr", "That copy couldn't be read."); return; }
+    const when = copyWhen(c);
+    if (copyArmed !== i && state.thoughts.length && !hold) {
+      disarmCopy();   // only one copy waits for a second tap at a time
+      copyArmed = i;
+      b.firstChild.textContent = "Tap again to bring back this copy";
+      b.classList.add("confirm");
+      announce("Tap again to bring back your copy from " + (when === "Today" || when === "Yesterday" ? when.toLowerCase() : when) + ". It replaces the thoughts here.");
+      copyTimer = setTimeout(disarmCopy, 5000);
+      return;
+    }
+    disarmCopy();
+    restoreState(r.state, "Your copy from " + (when === "Today" || when === "Yesterday" ? when.toLowerCase() : when) + " is back.", "copy");
+  }
+
+  // ---- delete everything from this device (two taps) ----
+  let wipeArmed = 0;
+  function resetWipe() {
+    clearTimeout(wipeArmed);
+    wipeArmed = 0;
+    $("wipeAll").textContent = "Delete everything from this device";
+    $("wipeAll").classList.remove("confirm");
+  }
+  function wipeDevice() {
+    return queue(async () => {
+      hideUndo();
+      try { if (!db) db = await openDb(); await dbClear(); }
+      catch (e) { toast("Ownsight couldn't delete what's saved here. Close it, open it again, then try again."); return; }
+      // Only Ownsight's own settings: other apps on this site keep theirs
+      try {
+        const keys = [];
+        for (let i = 0; i < localStorage.length; i++) { const k = localStorage.key(i); if (k === PREFIX || (k && k.startsWith(PREFIX + "-"))) keys.push(k); }
+        keys.forEach((k) => localStorage.removeItem(k));
+      } catch (e) { /* nothing else to remove */ }
+      state = defaults();
+      rev = 0;
+      hold = "";
+      saveFailed = false;
+      asideRec = undefined;
+      asideOK = false;
+      savedJson = null;
+      copiedDay = "";
+      $("bkPass").value = "";
+      $("bkProtect").checked = false;
+      $("bkPassBox").hidden = true;
+      hideCode();
+      clearRestore();
+      applySize("");
+      renderAll();
+      await renderCopies();
+      tellOthers();
+      toast("Everything Ownsight saved on this device is deleted.");
+      focusSafe("moreHead");
+    });
+  }
+
+  function renderMore() {
+    $("bkProtectRow").hidden = !canCrypt();
+    showErr("bkErr", "");
+    showErr("copiesErr", "");
+    resetWipe();
+    renderCopies();
+  }
+  // Leaving More: nothing about a backup stays on screen (a code, a password)
+  function leaveMore() {
+    hideCode();
+    $("bkPass").value = "";
+    $("bkRestorePass").value = "";
+    resetRestore();
+  }
+  function wireBackups() {
+    $("backupStatus").addEventListener("click", goBackup);
+    $("bkCardGo").addEventListener("click", goBackup);
+    $("bkCardLater").addEventListener("click", () => {
+      if (!canChange()) return;
+      const overdue = $("backupCard").dataset.level === "overdue";
+      commit((s) => { s.backup.snooze = dayAfter(new Date(), overdue ? NUDGE.laterOverdue : NUDGE.later); }, false);
+      toast(overdue ? "Okay, I'll remind you tomorrow." : "Okay, I'll remind you in a few days.");
+      focusSafe("writeHead");
+    });
+    $("bkProtect").addEventListener("change", () => {
+      $("bkPassBox").hidden = !$("bkProtect").checked;
+      showErr("bkErr", "");
+      hideCode();
+      if ($("bkProtect").checked) $("bkPass").focus();
+      else $("bkPass").value = "";
+    });
+    $("bkFile").addEventListener("click", saveFile);
+    $("bkCopy").addEventListener("click", copyCode);
+    $("bkPick").addEventListener("change", (e) => {
+      const f = e.target.files && e.target.files[0];
+      e.target.value = "";
+      if (!f) return;
+      showErr("restoreErr", "");
+      resetRestore();
+      if (f.size > CODE_MAX) { showErr("restoreErr", "That file is too big to be an Ownsight backup."); return; }
+      const r = new FileReader();
+      r.onload = () => {
+        pickedText = String(r.result);
+        $("bkPaste").value = "";
+        $("bkPicked").textContent = "Backup file chosen: " + f.name;
+        $("bkPicked").hidden = false;
+        const locked = renderLocked();
+        try { parseBackup(backupText(pickedText), OUTSIDE); } catch (err) { showErr("restoreErr", err.message); return; }
+        if (locked) { $("bkRestorePass").focus(); announce("Backup file chosen. Type its password, then tap Restore."); }
+        else { $("bkRestore").focus(); announce("Backup file chosen. Tap Restore to use it."); }
+      };
+      r.onerror = () => showErr("restoreErr", "Couldn't read that file. Try choosing it again.");
+      r.readAsText(f);
+    });
+    $("bkPaste").addEventListener("input", () => {
+      pickedText = null;
+      $("bkPicked").hidden = true;
+      showErr("restoreErr", "");
+      resetRestore();
+      renderLocked();
+    });
+    $("bkRestorePass").addEventListener("input", resetRestore);
+    $("bkRestore").addEventListener("click", onRestore);
+    $("copyList").addEventListener("click", onCopyTap);
+    $("wipeAll").addEventListener("click", () => {
+      if (!wipeArmed) {
+        $("wipeAll").textContent = "Tap again to delete everything. This can't be undone.";
+        $("wipeAll").classList.add("confirm");
+        announce("Tap again to delete everything. This can't be undone.");
+        wipeArmed = setTimeout(resetWipe, 5000);
+        return;
+      }
+      resetWipe();
+      wipeDevice();
+    });
+  }
+
   // ---- About ----
   function renderAbout() {
     $("aboutVersion").textContent = "A free app to understand how you think · Version " + APP_VERSION + " (early test version)";
@@ -1540,6 +2269,7 @@ button:focus-visible, a:focus-visible { outline: 2px solid var(--accent); outlin
     wireRecent();
     wireSheet();
     wireSee();
+    wireBackups();
     showTab("write");
     renderAll();
   } catch (err) {

@@ -1,5 +1,5 @@
-// Ownsight offline support (version 0.4.0)
-const CACHE = "ownsight-0.4.0";
+// Ownsight offline support (version 0.5.0)
+const CACHE = "ownsight-0.5.0";
 const PREFIX = "ownsight-";   // only caches with this prefix are ever cleared; other apps on this site keep theirs
 const SHELL = ["./", "./index.html", "./manifest.webmanifest", "./icon-192.png", "./icon-512.png", "./apple-touch-icon.png", "./favicon-32.png"];
 
