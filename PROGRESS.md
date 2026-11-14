@@ -122,7 +122,7 @@ Why some things are the way they are, so nobody "fixes" them by mistake:
 - **Tested in headless Chrome:** 19 logic tests in 12 time zones, 191 browser checks, 11 of 11 planted bugs caught, and the accessibility checker clean on every tab, sheet and card (CHANGELOG.md has the details). The test scripts aren't in the repo yet (see Decisions); the self-test will carry them.
 - **Not tested yet:** the owner's iPhone check of 0.4.0 (below), VoiceOver on a real iPhone (at the first release), and the Android Install button (headless Chrome never offers one).
 - **The iPhone checks for 0.2.0 and 0.3.0 were dropped,** since the remake replaced those screens. Stage 1's iPhone check passed (Nov 14, 2026).
-- **Tags:** `v0.1.0`, `v0.2.0` and `v0.3.0`, all added by the "Tag new versions" workflow (its runs passed). `v0.4.0` comes from the same workflow when 0.4.0 reaches main.
+- **Tags:** `v0.1.0`, `v0.2.0`, `v0.3.0` and `v0.4.0`, all added by the "Tag new versions" workflow (its runs passed).
 - The repo is on the monthly app security sweep's list.
 
 ## Next up
