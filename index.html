@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-2o5wd4VS9ugdgyTe70ssiSWnP94JWrvOhcjgq2FjR/A='; style-src 'unsafe-inline'; img-src 'self' data: blob:; font-src data:; connect-src 'none'; manifest-src 'self'; worker-src 'self'; form-action 'none'; base-uri 'none'; object-src 'none'; frame-src 'none'; media-src 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-TMdg8A4NjqzGfmMKrlpJN+S4yPuqHHxenQUkeW/A45E='; style-src 'unsafe-inline'; img-src 'self' data: blob:; font-src data:; connect-src 'none'; manifest-src 'self'; worker-src 'self'; form-action 'none'; base-uri 'none'; object-src 'none'; frame-src 'none'; media-src 'none'">
 <meta name="referrer" content="no-referrer">
 <meta name="description" content="A free, private app to understand how you think and what it means for your life. Everything stays on your device.">
 <meta name="theme-color" content="#F7F2EF" media="(prefers-color-scheme: light)">
@@ -317,6 +317,26 @@ label.ghost:has(+ .filepick:focus-visible) { outline: 2px solid var(--accent); o
 .primary.confirm, .ghost.confirm { background: var(--ink); color: var(--bg); border-color: var(--ink); }
 .ghost.confirm small { color: var(--bg); }
 
+/* PIN lock (More tab), and the screen that asks for the PIN. The screen covers everything, the sheet too. */
+#pinOff, #pinOn { display: flex; flex-direction: column; gap: 10px; }
+.pinstate { font-weight: 700; }
+dialog.lock {
+  position: fixed; inset: 0; width: 100%; height: 100%; max-width: none; max-height: none; margin: 0; border: 0;
+  background: var(--bg); color: var(--ink); overflow-y: auto;
+  padding: max(24px, env(safe-area-inset-top, 0px)) max(16px, env(safe-area-inset-right, 0px)) max(24px, env(safe-area-inset-bottom, 0px)) max(16px, env(safe-area-inset-left, 0px));
+}
+dialog.lock[open] { display: flex; align-items: center; justify-content: center; }
+dialog.lock::backdrop { background: var(--bg); }
+.lockin { width: 100%; max-width: 20rem; display: flex; flex-direction: column; gap: 14px; text-align: center; }
+.lockin .brand { justify-content: center; }
+.lockin h2 { margin: 0; font-size: 1.375rem; }
+.lockin form { display: flex; flex-direction: column; gap: 10px; }
+.lockin input[type="password"] { text-align: center; font: 500 1.5rem/1.2 var(--f-num); letter-spacing: 0.3em; }
+.lockin .primary, .lockin .ghost { width: 100%; }
+.lock-msg { min-height: 1.45em; font-weight: 700; }
+#lockForgotBox { display: flex; flex-direction: column; gap: 10px; }
+html.locked, html.locked body { overflow: hidden; }
+
 @media (prefers-reduced-motion: reduce) {
   * { transition: none !important; animation: none !important; scroll-behavior: auto !important; }
 }
@@ -431,6 +451,7 @@ label.ghost:has(+ .filepick:focus-visible) { outline: 2px solid var(--accent); o
       <h3 id="backupHead" tabindex="-1">Back up your thoughts</h3>
       <p>Your thoughts are only on this device. A backup is a small file or code with all of them in it, so you can bring them back on any phone.</p>
       <p class="foot" id="bkState">No backup yet</p>
+      <p class="foot" id="bkPinTip" hidden>Your PIN lock doesn't cover backups. To keep a backup private too, protect it with a password.</p>
       <label class="check" id="bkProtectRow"><input type="checkbox" id="bkProtect"><span>Protect it with a password<small>Optional. Nobody can open a protected backup without the password, and that includes you: a forgotten password can't be recovered.</small></span></label>
       <div class="field" id="bkPassBox" hidden>
         <label class="field-label" for="bkPass">Backup password</label>
@@ -476,6 +497,38 @@ label.ghost:has(+ .filepick:focus-visible) { outline: 2px solid var(--accent); o
       <p class="alert" id="copiesErr" role="alert" hidden></p>
       <ul class="copylist" id="copyList"></ul>
     </div>
+    <div class="card" id="pinBox" hidden>
+      <h3 id="pinHead" tabindex="-1">Lock with a PIN</h3>
+      <p class="foot">Ownsight asks for your PIN when it opens, and again after a minute away. Handy on a shared phone. It keeps your thoughts out of sight, but it doesn't scramble them the way a backup password does.</p>
+      <div id="pinOff">
+        <p class="foot">If you forget the PIN, the only way back in is to erase everything here, then restore a backup. So save a backup first.</p>
+        <div class="field">
+          <label class="field-label" for="pinNew">New PIN</label>
+          <p class="foot" id="pinNewHint">4 to 8 numbers.</p>
+          <input type="password" id="pinNew" inputmode="numeric" autocomplete="off" maxlength="8" aria-describedby="pinNewHint">
+        </div>
+        <div class="field">
+          <label class="field-label" for="pinNew2">Type the same PIN again</label>
+          <input type="password" id="pinNew2" inputmode="numeric" autocomplete="off" maxlength="8">
+        </div>
+        <p class="alert" id="pinErr" role="alert" hidden></p>
+        <div class="actions">
+          <button class="primary" type="button" id="pinSet">Turn on PIN lock</button>
+          <button class="ghost" type="button" id="pinBackup">Back up first</button>
+        </div>
+      </div>
+      <div id="pinOn" hidden>
+        <p class="pinstate">PIN lock is on.</p>
+        <p class="foot">It hides Ownsight on this phone, but not your backups. To keep a backup private too, protect it with a password.</p>
+        <div class="field">
+          <label class="field-label" for="pinOld">Your PIN</label>
+          <p class="foot" id="pinOldHint">Type it to turn the PIN lock off.</p>
+          <input type="password" id="pinOld" inputmode="numeric" autocomplete="off" maxlength="8" aria-describedby="pinOldHint">
+        </div>
+        <p class="alert" id="pinOffErr" role="alert" hidden></p>
+        <div class="actions"><button class="ghost" type="button" id="pinOffBtn">Turn off PIN lock</button></div>
+      </div>
+    </div>
     <div class="card">
       <fieldset class="seg">
         <legend>Text size</legend>
@@ -506,6 +559,7 @@ label.ghost:has(+ .filepick:focus-visible) { outline: 2px solid var(--accent); o
         <li>Everything Ownsight needs, fonts included, comes from this one site.</li>
         <li>Like any website, GitHub Pages, which hosts these files, may log visitors' IP addresses for security. It never sees what you write.</li>
         <li>A backup goes only where you put it, like the Files app or Notes. The automatic copies stay on this device.</li>
+        <li>The PIN lock, if you turn it on, keeps only a scrambled form of your PIN on this device, never the PIN itself.</li>
       </ul>
       <h4>Keep your thoughts safe</h4>
       <ul>
@@ -513,6 +567,7 @@ label.ghost:has(+ .filepick:focus-visible) { outline: 2px solid var(--accent); o
         <li><b>Bring your thoughts along.</b> On iPhone and iPad, the Home Screen app doesn't see what you saved in Safari. Before you add it, copy a backup code, then restore it in the Home Screen app.</li>
         <li><b>Safari can clear saved data</b> from websites you haven't opened in 7 days. The Home Screen app keeps its own, so it avoids that.</li>
       </ul>
+      <p>Something not working right? <a id="selfTestLink" href="selftest.html" target="_blank" rel="noopener noreferrer">Run the self-test</a>. It taps through Ownsight in this browser, on its own separate storage, so your thoughts aren't touched. Then it shows a report you can send in.</p>
       <p>It's a mirror, not a diagnosis. Ownsight isn't therapy, a clinical test or professional advice.</p>
       <p>A one-person volunteer project, built with help from AI.</p>
       <p>Ownsight's code is public, so anyone can check what it does: <a href="https://github.com/freeforgood-apps/ownsight" rel="noopener noreferrer">github.com/freeforgood-apps/ownsight</a></p>
@@ -521,7 +576,7 @@ label.ghost:has(+ .filepick:focus-visible) { outline: 2px solid var(--accent); o
     </div>
     <div class="card">
       <h3>Delete everything</h3>
-      <p class="foot">Removes every thought, automatic copy and setting Ownsight saved on this device. Back up first if you might want them again.</p>
+      <p class="foot">Removes every thought, automatic copy and setting Ownsight saved on this device, the PIN lock too. Back up first if you might want them again.</p>
       <div class="actions"><button class="ghost danger" type="button" id="wipeAll">Delete everything from this device</button></div>
     </div>
   </section>
@@ -553,6 +608,24 @@ label.ghost:has(+ .filepick:focus-visible) { outline: 2px solid var(--accent); o
   </div>
 </dialog>
 
+<!-- The PIN screen: a modal dialog, so it covers the sheet too and everything behind it is out of reach -->
+<dialog class="lock" id="lockScreen" aria-labelledby="lockTitle">
+  <div class="lockin">
+    <p class="brand"><svg viewBox="0 0 32 32" aria-hidden="true" focusable="false"><circle cx="16" cy="16" r="11" fill="none" stroke="currentColor" stroke-width="1.5" opacity="0.35"/><circle cx="16" cy="5" r="3.2" fill="currentColor"/><circle cx="25.5" cy="10.5" r="2.4" fill="currentColor"/><circle cx="25.5" cy="21.5" r="2.4" fill="currentColor"/><circle cx="16" cy="27" r="2.4" fill="currentColor"/><circle cx="6.5" cy="21.5" r="2.4" fill="currentColor"/><circle cx="6.5" cy="10.5" r="2.4" fill="currentColor"/></svg>Ownsight</p>
+    <form id="lockForm" novalidate>
+      <h2><label id="lockTitle" for="lockPin">Enter your PIN</label></h2>
+      <input type="password" id="lockPin" inputmode="numeric" autocomplete="off" maxlength="8">
+      <button class="primary" type="submit" id="lockGo">Unlock</button>
+    </form>
+    <p class="lock-msg" id="lockMsg" aria-live="polite"></p>
+    <button class="ghost" type="button" id="lockForgot" aria-expanded="false" aria-controls="lockForgotBox">Forgot your PIN?</button>
+    <div id="lockForgotBox" hidden>
+      <p class="foot">Without the PIN, the only way in is to erase everything Ownsight saved on this device. Then restore a backup if you have one.</p>
+      <button class="ghost danger" type="button" id="lockWipe">Erase and start over</button>
+    </div>
+  </div>
+</dialog>
+
 <p class="sr-only" id="announce" role="status" aria-live="polite"></p>
 
 <nav class="tabbar" aria-label="Sections">
@@ -575,7 +648,7 @@ label.ghost:has(+ .filepick:focus-visible) { outline: 2px solid var(--accent); o
 "use strict";
 (() => {
   // ---- settings ----
-  const APP_VERSION = "0.5.0";
+  const APP_VERSION = "1.0.0";
   const PREFIX = "ownsight-v1";   // every name this app saves starts with this, so it never touches another app's data
   const FEEDBACK_EMAIL = "freeforgood-apps+ownsight@proton.me";
   const TABS = ["write", "see", "more"];
@@ -2141,11 +2214,12 @@ label.ghost:has(+ .filepick:focus-visible) { outline: 2px solid var(--accent); o
     $("wipeAll").textContent = "Delete everything from this device";
     $("wipeAll").classList.remove("confirm");
   }
+  // Resolves true once everything is deleted, false when it couldn't be (then nothing else changes)
   function wipeDevice() {
     return queue(async () => {
       hideUndo();
       try { if (!db) db = await openDb(); await dbClear(); }
-      catch (e) { toast("Ownsight couldn't delete what's saved here. Close it, open it again, then try again."); return; }
+      catch (e) { toast("Ownsight couldn't delete what's saved here. Close it, open it again, then try again."); return false; }
       // Only Ownsight's own settings: other apps on this site keep theirs
       try {
         const keys = [];
@@ -2160,6 +2234,8 @@ label.ghost:has(+ .filepick:focus-visible) { outline: 2px solid var(--accent); o
       asideOK = false;
       savedJson = null;
       copiedDay = "";
+      pinCfg = null;   // its setting went with the others above
+      clearPinBoxes();
       $("bkPass").value = "";
       $("bkProtect").checked = false;
       $("bkPassBox").hidden = true;
@@ -2167,10 +2243,225 @@ label.ghost:has(+ .filepick:focus-visible) { outline: 2px solid var(--accent); o
       clearRestore();
       applySize("");
       renderAll();
+      renderPin();
       await renderCopies();
       tellOthers();
-      toast("Everything Ownsight saved on this device is deleted.");
-      focusSafe("moreHead");
+      return true;
+    });
+  }
+
+  // ---- PIN lock: a privacy screen for a shared phone (Till Payday's) ----
+  // Only a salted PBKDF2-SHA256 hash of the PIN is kept (setting "pin"), never the PIN. It hides the thoughts; it doesn't
+  // encrypt them. A wrong PIN never changes anything: after 5 wrong tries in a row it waits 30 seconds, doubling each time
+  // up to 5 minutes (setting "pinwait"). A forgotten PIN means erasing everything here, then restoring a backup.
+  const PIN_KEY = PREFIX + "-pin";
+  const PIN_ITER = BK_ITER;         // the same rounds as backup passwords; each PIN keeps its own count, so it can rise later
+  const LOCK_AFTER = 60000;         // asks again after a minute in the background
+  const PIN_FREE_TRIES = 5;
+  let pinCfg = null, locked = false, hiddenAt = 0, pinBusy = false, lockOpener = null, waitTimer = 0, lockWipeArmed = 0;
+  const pinOk = (p) => /^\d{4,8}$/.test(p);
+  function readPin() {
+    let c = null;
+    try { c = JSON.parse(getSetting("pin") || "null"); } catch (e) { c = null; }
+    pinCfg = isObj(c) && c.v === 1 && typeof c.salt === "string" && c.salt && typeof c.hash === "string" && c.hash && Number.isInteger(c.iter) ? c : null;
+  }
+  async function pinHash(pin, saltB64, iter) {
+    const base = await crypto.subtle.importKey("raw", new TextEncoder().encode(pin), "PBKDF2", false, ["deriveBits"]);
+    const n = Math.min(Math.max(iter, 1000), 2000000);   // a made-up setting can't make it run for ages
+    return bufB64(await crypto.subtle.deriveBits({ name: "PBKDF2", salt: b64Buf(saltB64), iterations: n, hash: "SHA-256" }, base, 256));
+  }
+  async function pinMatches(pin) {
+    if (!pinCfg || !pinOk(pin)) return false;
+    try { return (await pinHash(pin, pinCfg.salt, pinCfg.iter)) === pinCfg.hash; } catch (e) { return false; }
+  }
+  const PIN_MAX_WAIT = 300000;
+  function readWait() {
+    let w = {};
+    try { w = JSON.parse(getSetting("pinwait") || "{}") || {}; } catch (e) { w = {}; }
+    const out = { fails: Math.max(0, w.fails | 0), until: Number(w.until) || 0 };
+    // If the clock was turned back, a wait could seem to last for ages. It never lasts more than 5 minutes from now.
+    if (out.until > Date.now() + PIN_MAX_WAIT) { out.until = Date.now() + PIN_MAX_WAIT; writeWait(out); }
+    return out;
+  }
+  function writeWait(w) { setSetting("pinwait", JSON.stringify(w)); }
+  // The PIN screen opens over everything (the sheet too). cover: only while Ownsight is in the background, so the
+  // app switcher shows the PIN screen; it goes away again if Ownsight comes back within a minute.
+  function showLockScreen() {
+    const dlg = $("lockScreen");
+    if (!dlg.open) {
+      lockOpener = document.activeElement;
+      if (dlg.showModal) dlg.showModal(); else dlg.setAttribute("open", "");
+    }
+    document.documentElement.classList.add("locked");
+  }
+  function hideLockScreen() {
+    const dlg = $("lockScreen");
+    document.documentElement.classList.remove("locked");
+    if (!dlg.open) return;
+    if (dlg.close) dlg.close(); else dlg.removeAttribute("open");
+  }
+  function lockNow() {
+    if (!pinCfg) return;
+    locked = true;
+    toast("");
+    $("lockPin").value = "";
+    $("lockMsg").textContent = "";
+    $("lockForgotBox").hidden = true;
+    $("lockForgot").setAttribute("aria-expanded", "false");
+    resetLockWipe();
+    showLockScreen();
+    renderWait(false);
+    $("lockPin").focus();
+  }
+  function unlock() {
+    locked = false;
+    $("lockPin").value = "";   // the PIN is never kept around after unlocking
+    hideLockScreen();
+    const o = lockOpener;
+    lockOpener = null;
+    if (o && o !== document.body && o.isConnected && !o.closest("[hidden]")) o.focus();
+    else focusSafe((TABS.find((x) => !$("view-" + x).hidden) || "write") + "Head");
+  }
+  // Too many wrong tries: Unlock waits. Said once (not counted down out loud), then "You can try again now."
+  function renderWait(say) {
+    clearTimeout(waitTimer);
+    const left = readWait().until - Date.now();
+    $("lockGo").disabled = left > 0;
+    if (left > 0) {
+      const s = Math.ceil(left / 1000);
+      $("lockMsg").textContent = "Too many tries. Wait " + (s >= 60 && s % 60 === 0 ? plural(s / 60, "minute", "minutes") : plural(s, "second", "seconds")) + ", then try again.";
+      waitTimer = setTimeout(() => renderWait(true), Math.min(left, 2147483647));
+    } else if (say) $("lockMsg").textContent = "You can try again now.";
+  }
+  async function onUnlock(e) {
+    e.preventDefault();
+    if (pinBusy) return;
+    if (!pinCfg) { unlock(); return; }
+    if (readWait().until > Date.now()) { renderWait(false); return; }
+    const pin = $("lockPin").value.trim();
+    pinBusy = true;
+    const good = await pinMatches(pin);
+    pinBusy = false;
+    if (!locked) return;   // unlocked meanwhile (the PIN was turned off in another window)
+    if (good) { writeWait({ fails: 0, until: 0 }); $("lockMsg").textContent = ""; unlock(); return; }
+    const w = readWait(), fails = w.fails + 1;
+    const until = fails >= PIN_FREE_TRIES ? Date.now() + Math.min(30000 * Math.pow(2, fails - PIN_FREE_TRIES), PIN_MAX_WAIT) : 0;
+    writeWait({ fails, until });
+    $("lockPin").value = "";
+    $("lockPin").focus();
+    $("lockMsg").textContent = "";
+    if (until) renderWait(false);
+    else setTimeout(() => { $("lockMsg").textContent = "That PIN isn't right."; }, 60);   // read out again on every wrong try
+  }
+  function resetLockWipe() {
+    clearTimeout(lockWipeArmed);
+    lockWipeArmed = 0;
+    $("lockWipe").textContent = "Erase and start over";
+    $("lockWipe").classList.remove("confirm");
+  }
+  function onLockWipe() {
+    if (!lockWipeArmed) {
+      $("lockWipe").textContent = "Tap again to erase everything. This can't be undone.";
+      $("lockWipe").classList.add("confirm");
+      $("lockMsg").textContent = "Tap again to erase everything. This can't be undone.";
+      lockWipeArmed = setTimeout(() => { resetLockWipe(); $("lockMsg").textContent = ""; }, 5000);
+      return;
+    }
+    resetLockWipe();
+    $("lockMsg").textContent = "";
+    wipeDevice().then((done) => {
+      if (!done) { $("lockMsg").textContent = "Ownsight couldn't erase what's saved here. Close it, open it again, then try again."; return; }
+      lockOpener = null;
+      locked = false;
+      hideLockScreen();
+      showTab("more");
+      $("restoreHead").focus();
+      $("restoreBox").scrollIntoView({ block: "start" });
+      toast("Erased. If you have a backup, restore it here.");
+    });
+  }
+  // The PIN card on More
+  function clearPinBoxes() {
+    for (const id of ["pinNew", "pinNew2", "pinOld"]) $(id).value = "";
+    showErr("pinErr", "");
+    showErr("pinOffErr", "");
+  }
+  function renderPin() {
+    const can = canCrypt();
+    $("pinBox").hidden = !can;
+    $("pinOff").hidden = !!pinCfg;
+    $("pinOn").hidden = !pinCfg;
+    $("bkPinTip").hidden = !(pinCfg && can);
+  }
+  async function onPinSet() {
+    if (pinBusy) return;
+    showErr("pinErr", "");
+    const a = $("pinNew").value.trim(), b = $("pinNew2").value.trim();
+    if (!pinOk(a)) { showErr("pinErr", "Use 4 to 8 numbers for your PIN."); $("pinNew").focus(); return; }
+    if (a !== b) { $("pinNew2").value = ""; showErr("pinErr", "The two PINs don't match. Type it again."); $("pinNew2").focus(); return; }
+    pinBusy = true;
+    let cfg = null;
+    try {
+      const salt = bufB64(crypto.getRandomValues(new Uint8Array(16)));
+      cfg = { v: 1, salt, iter: PIN_ITER, hash: await pinHash(a, salt, PIN_ITER) };
+    } catch (e) { cfg = null; }
+    pinBusy = false;
+    const text = cfg ? JSON.stringify(cfg) : "";
+    if (!cfg || !setSetting("pin", text) || getSetting("pin") !== text) { showErr("pinErr", "Couldn't save a PIN on this device."); return; }
+    pinCfg = cfg;
+    writeWait({ fails: 0, until: 0 });
+    clearPinBoxes();
+    renderPin();
+    $("pinHead").focus();
+    toast("PIN lock is on. Ownsight asks for it next time it opens.");
+  }
+  async function onPinOff() {
+    if (pinBusy) return;
+    showErr("pinOffErr", "");
+    pinBusy = true;
+    const good = await pinMatches($("pinOld").value.trim());
+    pinBusy = false;
+    if (!good) { $("pinOld").value = ""; showErr("pinOffErr", "That PIN isn't right."); $("pinOld").focus(); return; }
+    try { localStorage.removeItem(PIN_KEY); localStorage.removeItem(PREFIX + "-pinwait"); } catch (e) { /* checked below */ }
+    if (getSetting("pin") !== null) { showErr("pinOffErr", "Couldn't turn the PIN lock off on this device."); return; }
+    pinCfg = null;
+    clearPinBoxes();
+    renderPin();
+    $("pinHead").focus();
+    toast("PIN lock is off.");
+  }
+  function wirePin() {
+    const dlg = $("lockScreen");
+    $("lockForm").addEventListener("submit", onUnlock);
+    // Typing again after a wait that's over lets Unlock work right away
+    $("lockPin").addEventListener("input", () => { if ($("lockGo").disabled && readWait().until <= Date.now()) renderWait(true); });
+    $("lockForgot").addEventListener("click", () => {
+      const open = $("lockForgotBox").hidden;
+      $("lockForgotBox").hidden = !open;
+      $("lockForgot").setAttribute("aria-expanded", open ? "true" : "false");
+      if (!open) { resetLockWipe(); $("lockMsg").textContent = ""; }
+    });
+    $("lockWipe").addEventListener("click", onLockWipe);
+    // The PIN screen can't be closed with Esc. If a browser closes it anyway, it opens again.
+    dlg.addEventListener("cancel", (e) => e.preventDefault());
+    dlg.addEventListener("close", () => { if (locked) { showLockScreen(); $("lockPin").focus(); } });
+    $("pinSet").addEventListener("click", onPinSet);
+    $("pinOffBtn").addEventListener("click", onPinOff);
+    $("pinBackup").addEventListener("click", goBackup);
+    // Leaving locks the screen at once (so the app switcher shows it); back within a minute, it goes away again
+    document.addEventListener("visibilitychange", () => {
+      if (!pinCfg) return;
+      if (document.hidden) { hiddenAt = Date.now(); showLockScreen(); }
+      else if (!locked) { if (Date.now() - hiddenAt > LOCK_AFTER) lockNow(); else hideLockScreen(); }
+    });
+    // Another window turned the PIN on (this one locks) or off, or deleted everything (this one opens)
+    window.addEventListener("storage", (e) => {
+      if (e.key !== PIN_KEY && e.key !== null) return;
+      readPin();
+      if (!canCrypt()) pinCfg = null;
+      renderPin();
+      if (pinCfg && !locked) lockNow();
+      else if (!pinCfg && locked) unlock();
     });
   }
 
@@ -2179,14 +2470,16 @@ label.ghost:has(+ .filepick:focus-visible) { outline: 2px solid var(--accent); o
     showErr("bkErr", "");
     showErr("copiesErr", "");
     resetWipe();
+    renderPin();
     renderCopies();
   }
-  // Leaving More: nothing about a backup stays on screen (a code, a password)
+  // Leaving More: nothing about a backup or a PIN stays on screen (a code, a password, a PIN)
   function leaveMore() {
     hideCode();
     $("bkPass").value = "";
     $("bkRestorePass").value = "";
     resetRestore();
+    clearPinBoxes();
   }
   function wireBackups() {
     $("backupStatus").addEventListener("click", goBackup);
@@ -2247,18 +2540,32 @@ label.ghost:has(+ .filepick:focus-visible) { outline: 2px solid var(--accent); o
         return;
       }
       resetWipe();
-      wipeDevice();
+      wipeDevice().then((done) => {
+        if (!done) return;
+        toast("Everything Ownsight saved on this device is deleted.");
+        focusSafe("moreHead");
+      });
     });
   }
 
   // ---- About ----
   function renderAbout() {
-    $("aboutVersion").textContent = "A free app to understand how you think · Version " + APP_VERSION + " (early test version)";
+    $("aboutVersion").textContent = "A free app to understand how you think · Version " + APP_VERSION;
     $("aboutMail").href = "mailto:" + FEEDBACK_EMAIL + "?subject=" + encodeURIComponent("Ownsight feedback (v" + APP_VERSION + ")");
   }
 
   // ---- start ----
+  // The PIN screen comes first, before anything else is set up, so no thought can show before it
   try {
+    wirePin();
+    readPin();
+    if (!canCrypt()) pinCfg = null;   // a PIN can't be checked here, so it can't lock (it's a privacy screen, not encryption)
+    if (pinCfg) lockNow();
+  } catch (err) {
+    $("startError").hidden = false;
+  }
+  try {
+    renderPin();
     wireTabs();
     wireSize();
     wireInstall();

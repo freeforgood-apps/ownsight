@@ -4,7 +4,7 @@ New chat? Read this first, then how-to-update.md before editing anything. The st
 
 ## What it is
 
-A free web app that helps each person understand themselves and what it means for their life, in the most straightforward way. Write what's on your mind and tap where it's at: **Thinking about it**, **Planning it** or **Did it**. That one tap saves it. Then, if you like, tap whether it **lifts you** or **weighs on you**. Each thought moves along as you make a plan and do it. The See tab shows, in plain counts, where your thoughts sit, what lifts you and what weighs on you, and which thoughts are waiting for a plan, with a look back at your week from Friday to Sunday. Backups (a file or a code, with an optional password) and automatic copies keep the thoughts safe, with gentle reminders.
+A free web app that helps each person understand themselves and what it means for their life, in the most straightforward way. Write what's on your mind and tap where it's at: **Thinking about it**, **Planning it** or **Did it**. That one tap saves it. Then, if you like, tap whether it **lifts you** or **weighs on you**. Each thought moves along as you make a plan and do it. The See tab shows, in plain counts, where your thoughts sit, what lifts you and what weighs on you, and which thoughts are waiting for a plan, with a look back at your week from Friday to Sunday. Backups (a file or a code, with an optional password) and automatic copies keep the thoughts safe, with gentle reminders. An optional PIN lock hides it on a shared phone, and a self-test anyone can run checks it works in their own browser.
 
 ## Ground rules
 
@@ -21,11 +21,12 @@ A free web app that helps each person understand themselves and what it means fo
 - **This repo is the latest source.** Claude's workspace is temporary, so anything worth keeping gets saved here.
 - **Web address (never changes):** https://freeforgood-apps.github.io/ownsight/ (GitHub Pages, from main, / (root)).
 - **Names that never change,** or people lose their data:
-  - Saved data: IndexedDB database `ownsight-v1` (version 1, store `data`, record `state` = `{ rev, json }`; record `copies` = the automatic copies; data that couldn't be read is set aside as `damaged-<rev>`). Small settings: localStorage keys starting `ownsight-v1-`. Windows tell each other about saves on the BroadcastChannel `ownsight-v1`.
+  - Saved data: IndexedDB database `ownsight-v1` (version 1, store `data`, record `state` = `{ rev, json }`; record `copies` = the automatic copies; data that couldn't be read is set aside as `damaged-<rev>`). Small settings: localStorage keys starting `ownsight-v1-` (text size, the Home Screen card, the PIN lock and its wait). Windows tell each other about saves on the BroadcastChannel `ownsight-v1`.
   - Offline cache names start with `ownsight-`.
+  - The self-test's own storage: database, settings and BroadcastChannel `ownsight-selftest-v1`, never `ownsight-v1`.
   - Backup codes start with `OWNSIGHT1:`. Backup files are named `ownsight-backup-YYYY-MM-DD.json` (`-locked.json` with a password), and say `app: "Ownsight"` inside.
 - **Shared address:** freeforgood-apps.github.io is shared with Till Payday, Study Coach and the other free apps. Every key, database and cache name keeps the `ownsight-` prefix, and nothing ever clears storage it doesn't own.
-- **Files** (Till Payday's layout, flat at the top of the repo): `index.html` (the whole app), `sw.js`, `manifest.webmanifest`, the icons, `rebuild.py`, `README.md` (toolkit README outline), `CHANGELOG.md`, `how-to-update.md`, `SECURITY.md` and `.gitignore` (toolkit Baseline kit), and `.github/workflows/tag-new-versions.yml` (copied unchanged from Best Guess). Still to come: `selftest.html` (the second safety-net chat), which `rebuild.py` will build.
+- **Files** (Till Payday's layout, flat at the top of the repo): `index.html` (the whole app), `sw.js`, `manifest.webmanifest`, the icons, `rebuild.py`, `README.md` (toolkit README outline), `CHANGELOG.md`, `how-to-update.md`, `SECURITY.md` and `.gitignore` (toolkit Baseline kit), `.github/workflows/tag-new-versions.yml` (copied unchanged from Best Guess), and `selftest.html`, which `rebuild.py` builds from `index.html` (the runner's source is its last script).
 
 ## How it works: the remake (0.4.0, Nov 14, 2026)
 
@@ -45,8 +46,10 @@ The owner asked for a remake, rethought from the goal: simpler to understand and
    - **N thoughts are waiting for a plan** (those at Thinking) with **Show me one**, which opens the oldest one at Thinking.
    - **Your week,** at the top from Friday to Sunday (the person's own time): the last 7 days, "You wrote 9 thoughts and did 2 of them", what lifted you and what weighed on you, and "What would you like more of next week?" (nothing to fill in). Only when there's at least one thought that week.
    - "Just counts from your own thoughts. A mirror, not a diagnosis."
-4. **More** (0.5.0): **Back up your thoughts** (Save a backup file, Copy backup code, an optional password), **Restore a backup** (choose a file or paste a code; two taps when it would replace thoughts, with Undo), **Automatic copies** (the last 3 days, two taps to bring one back, with Undo), text size, Add to Home Screen, About, and **Delete everything** (two taps).
-5. **Beside the name** (0.5.0): "No backup yet" or "Backed up 3 days ago", in place of "Saved on this device" once there are thoughts, and never in place of a note that saving has stopped. Tapping it opens the backups.
+4. **More** (0.5.0): **Back up your thoughts** (Save a backup file, Copy backup code, an optional password), **Restore a backup** (choose a file or paste a code; two taps when it would replace thoughts, with Undo), **Automatic copies** (the last 3 days, two taps to bring one back, with Undo), **Lock with a PIN** (1.0), text size, Add to Home Screen, About (with **Run the self-test**, 1.0), and **Delete everything** (two taps).
+5. **The PIN screen** (1.0, when the PIN lock is on): Ownsight's name, "Enter your PIN", **Unlock**, and **Forgot your PIN?**, which explains that the only way in is to erase everything here and offers **Erase and start over** (two taps). It covers everything, an open thought too.
+6. **The self-test** (1.0, `selftest.html`): the app on its own storage with a panel at the bottom: **Run self-test**, then a report (passed or what failed, the browser and what it can do) to copy or email.
+7. **Beside the name** (0.5.0): "No backup yet" or "Backed up 3 days ago", in place of "Saved on this device" once there are thoughts, and never in place of a note that saving has stopped. Tapping it opens the backups.
 
 ### What it saves (data version 3)
 
@@ -75,19 +78,31 @@ The database, the record layout, the save count, the read-back and the damaged a
 2. **The first thinking loop:** done (0.2.0 and 0.3.0), now replaced by the remake.
 3. **The remake:** done (0.4.0): the screens above, version 2 data and the move up from version 1.
 4. **Safety net, part 1:** done (0.5.0): automatic copies, backup file and code (optional password), two-tap restore (also when saved data can't be read), backup reminders, Delete everything, and a fuller About.
-5. **Safety net, part 2 (next chat):** the optional PIN screen, the self-test (and its link in About) and the first release (1.0).
+5. **Safety net, part 2:** done (1.0.0): the optional PIN screen, the self-test (and its link in About) and the first release.
 
 **Ideas for later** (offered to the owner, not chosen): a 3-minute personality check (20 public-domain IPIP statements, shown as five plain sentences, never a type), and one question a day.
 
 ## Security plan (from the plan review)
 
 - **Worth protecting:** people's private thoughts and what they show about them. **Risks:** data lost, someone holding the phone, a booby-trapped backup code or file, a bug in another app on the shared address.
-- **Built in from the start:** the privacy lock (`default-src 'none'`, `connect-src 'none'`), every entry shown as text only through `el()`, backups checked with `parseBackup()` and a size cap before restore, a password option on backups, an optional PIN screen (next chat; Till Payday's: it hides the app on a shared phone and doesn't encrypt; only a salted PBKDF2 hash of the PIN is kept; a wrong PIN never wipes anything), backup passwords with PBKDF2-SHA256 and AES-256-GCM (Web Crypto only; a wrong password never changes anything; a forgotten one can't be recovered), a generic page title with no entry text in titles or link previews, built-in fonts only (no Google Fonts), and the `ownsight-` prefix on every name.
+- **Built in from the start:** the privacy lock (`default-src 'none'`, `connect-src 'none'`), every entry shown as text only through `el()`, backups checked with `parseBackup()` and a size cap before restore, a password option on backups, an optional PIN screen (1.0, Till Payday's: it hides the app on a shared phone and doesn't encrypt; only a salted PBKDF2 hash of the PIN is kept; a wrong PIN never wipes anything), backup passwords with PBKDF2-SHA256 and AES-256-GCM (Web Crypto only; a wrong password never changes anything; a forgotten one can't be recovered), a generic page title with no entry text in titles or link previews, built-in fonts only (no Google Fonts), and the `ownsight-` prefix on every name.
 - **Avoid:** any outside request, AI feature or analytics, and anything that clears storage it doesn't own.
 
 ## Decisions
 
 Why some things are the way they are, so nobody "fixes" them by mistake:
+- **The PIN lives in a device setting** (`ownsight-v1-pin`, 1.0), not in the saved data or backups, like Till Payday's. It can lock before the thoughts load, and it belongs to this phone, so a backup restored elsewhere never brings a PIN along. `settings` in the saved data stays empty, kept for later.
+- **The PIN screen is a modal dialog** (1.0), so it sits above an open thought (itself a modal dialog) and everything behind it is out of reach for taps, the keyboard and VoiceOver. Esc can't close it, and if a browser closes it anyway, it opens again. Unlocking puts you back where you were.
+- **Leaving covers the screen at once; a minute away asks again** (Till Payday's timing). Back sooner, the cover goes by itself.
+- **The wait after wrong tries is said once, not counted down** (1.0), since VoiceOver would read every second. It never lasts more than 5 minutes from now, even if the phone's clock is turned back. Typing again after it's over lets Unlock work right away.
+- **The PIN uses the same rounds as backup passwords** (600,000, `PIN_ITER`), and each PIN keeps its own count, so it can rise later. There's no step yet to re-save older PINs with more rounds, since there aren't any (Till Payday has one).
+- **Turning the PIN off needs the PIN; changing it is off, then on.** Another window turning it on locks this one; turning it off, or deleting everything, opens it.
+- **Forgot your PIN? erases everything (two taps), then opens Restore a backup** (1.0). Erasing only happens if deleting works; otherwise the PIN screen stays and says so.
+- **Backups while the PIN is on: a short tip, not a forced password** (Nov 14, 2026, the owner's choice). The PIN card and the backup card say the PIN doesn't cover backups and suggest a password. Backups stay quick, and a forgotten password can't lose a backup nobody chose to protect.
+- **The self-test is built from the app** (1.0): `rebuild.py` makes `selftest.html` from `index.html` on its own storage (`ownsight-selftest-v1`), so it always tests the app as it ships. The runner's source is the last script in `selftest.html`, and its copy of the logic is refreshed from `index.html` every build. It drops its own PIN when it opens, so its Run button can always be reached, and it checks it's on its own storage before changing anything.
+- **The self-test checks locking through the same lock another window's PIN uses** (it can't reopen itself mid-run). Ownsight locking when it really opens is checked in headless Chrome and on the owner's iPhone.
+- **`selftest.html?look` replaced the seed and draft pages** (1.0). It writes made-up thoughts into the self-test's own storage, never real ones, so it's safe to publish, and the accessibility checker can reach every sheet with taps alone.
+- **The self-test link opens in a new tab,** like Till Payday's.
 - **The safety net in two chats** (Nov 14, 2026, the owner's choice): backups, copies, reminders and Delete everything first (0.5.0), then the PIN screen, the self-test and 1.0.
 - **A PIN screen, not an encrypted lock** (Nov 14, 2026, the owner's choice): the same as Till Payday's, so it hides the app on a shared phone without encrypting the thoughts. A forgotten PIN means restoring a backup or starting over, never losing thoughts to a forgotten password.
 - **The backup record lives in the saved data** (version 3), like Till Payday's, so it travels with saves between windows. Backups leave it out, since it's about this device. Moving up from version 2 counts each thought as a change, so someone with thoughts but no backup gets the first reminder soon.
@@ -126,25 +141,28 @@ Why some things are the way they are, so nobody "fixes" them by mistake:
 - **The shared freeforgood-apps address was chosen over a separate org.** It's simpler, and the prefixes and privacy lock keep apps apart.
 - **Tabs sit at the bottom** (Nov 14, 2026), not at the top like Till Payday's and Best Guess's, so they stay in thumb reach, as app-new-project Part 3 asks.
 - **Warm clay color and the loop icon** (Nov 14, 2026), chosen by the owner. Clay is `#A3482B` in light mode and `#EB8F70` in dark, distinct from Till Payday's teal, Best Guess's indigo and Study Coach's navy. The icon is the thinking loop: 6 dots in a ring, the first a little bigger.
-- **Versions stay at 0.x until the first release** (1.0, with the safety net), like Best Guess.
-- **Text size and a short About came early,** in stage 1. About gained backups and what stays where in 0.5.0; the self-test link comes with 1.0.
-- **Text size stays a small localStorage setting** (`ownsight-v1-size`), not in the saved data, so it applies before the thoughts load. `settings` in the saved data is kept for later (the app lock).
+- **Versions stayed at 0.x until the first release,** like Best Guess. 1.0.0 is the first full release.
+- **Text size and a short About came early,** in stage 1. About gained backups and what stays where in 0.5.0, and the PIN line and the self-test link in 1.0.
+- **Text size stays a small localStorage setting** (`ownsight-v1-size`), not in the saved data, so it applies before the thoughts load. `settings` in the saved data is kept for later.
 - **`el()` and `parseBackup()` arrive with the code that uses them,** so there's no unused code before then. `parseBackup()` arrived in 0.5.0, inside the logic markers so the tests reach it.
 - **The app always opens on Write,** with no remembered tab, since writing is the main job.
-- **The logic tests stay out of the repo for now,** to keep Till Payday's flat layout. The self-test carries them, along with the Done when lines code can test.
+- **The logic tests live in the self-test** (1.0), not in separate test files, to keep Till Payday's flat layout. The self-test carries them, checked a second way, along with the Done when lines code can test.
 - **The name Ownsight was checked on Nov 14, 2026.** Thinkprint, Groundwork, Open Mind, Mind Reader, MindLoop and Thought Compass were ruled out by existing trademarks or apps in this space. A pending "Ownersight" application covers property and building software and was judged low risk.
 
 ## Where things stand (Nov 14, 2026)
 
-- **0.5.0 (safety net, part 1) is ready,** not shared yet. Thoughts saved by 0.2.0, 0.3.0 and 0.4.0 carry over.
-- **Tested in headless Chrome:** 17 logic tests in 12 time zones, 167 browser checks, 12 of 12 planted bugs caught, and the accessibility checker clean on every new screen and the 0.4.0 list (CHANGELOG.md has the details). The test scripts aren't in the repo yet (see Decisions); the self-test will carry them.
-- **Not tested yet:** the owner's iPhone check of 0.5.0, the share sheet and the clipboard in Safari, VoiceOver on a real iPhone (at the first release), and the Android Install button (headless Chrome never offers one).
-- **Tags:** `v0.1.0` to `v0.4.0`, all added by the "Tag new versions" workflow. `v0.5.0` comes when it reaches main.
+- **1.0.0, the first full release, is ready** and on main. Thoughts saved by 0.2.0 through 0.5.0 carry over (saved data is still version 3).
+- **Tested in headless Chrome:** the self-test (368 checks) at 3 sizes, in 13 time zones and on 4 days of the week; 16 of 16 planted bugs caught; 29 more checks of the PIN lock on the real app; the accessibility checker clean in 29 runs covering every screen, sheet and PIN state at 4 sizes in light and dark (CHANGELOG.md has the details).
+- **Not tested yet:** the owner's iPhone check of 1.0 and 0.5.0 (below), the self-test on a real iPhone, VoiceOver, the share sheet and the clipboard in Safari, and the Android Install button (headless Chrome never offers one).
+- **Tags:** `v0.1.0` to `v0.5.0`, all added by the "Tag new versions" workflow. `v1.0.0` comes when it reaches main.
 - The repo is on the monthly app security sweep's list.
 
 ## Next up
 
-- **The owner's iPhone check of 0.5.0,** on the live site (Done when):
+- **The owner's iPhone check of 1.0,** on the live site (Done when):
+  1. Turn on a PIN lock in More, close Ownsight and open it again: it asks for the PIN before any thought shows, a wrong PIN changes nothing, and the right one opens it.
+  2. Open the self-test from About, tap Run self-test, and it says Passed.
+- **And 0.5.0's, done at the same time:**
   1. Copy a backup code into Notes, delete everything from this device, paste the code back, and every thought returns.
   2. Delete a thought by mistake, and after Undo is gone, More brings back this morning's automatic copy in two taps.
-- **Safety net, part 2** (then 1.0): the optional PIN screen (Till Payday's), the self-test and its About link, and the first release. The self-test checks that the app opens offline with its version shown, carries the logic checks and the Done when lines code can test (both 0.5.0 lines can be), and uses its own database name, never `ownsight-v1`. Once the self-test can open the sheets with made-up thoughts, the seed and draft steps in how-to-update.md retire. To decide in that chat: whether turning on the PIN screen should suggest a password for backups (security-audit says a lock should cover backups too; Till Payday's PIN screen doesn't). Before building, draft its Done when lines.
+- **The 5-minute VoiceOver check** (accessibility-check's iPhone test), once.
